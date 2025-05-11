@@ -1,0 +1,63 @@
+{
+  "name": "admin-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ant-design/icons": "^5.4.0",
+    "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@reduxjs/toolkit": "^2.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "antd": "^5.20.0",
+    "antd-style": "^3.6.2",
+    "axios": "^1.7.3",
+    "dayjs": "^1.11.13",
+    "history": "^5.3.0",
+    "i18next": "^24.2.1",
+    "query-string": "^9.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.4.0",
+    "react-query": "^3.39.3",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.26.0",
+    "react-use": "^17.6.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.1",
+    "vite-plugin-svgr": "^4.3.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "web-vitals": "^2.1.4",
+    "zod": "^3.23.8"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "generate:base": "node scripts/generate-base.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@craco/craco": "^7.1.0"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "name": "users",
+  "version": "0.0.1",
+  "description": "Users management plugin for API Server",
+  "default": true,
+  "packages": {
+    "bcrypt": "^5.1.1",
+    "mongoose": "^8.1.1",
+    "inversify": "^6.0.2",
+    "zod": "^3.22.4"
+  },
+  "files": [
+    {
+      "filePath": "index.ts"
+    },
+    {
+      "filePath": "INFO.md"
+    },
+    {
+      "filePath": "usersContainer.ts"
+    },
+    {
+      "filePath": "constants/role.ts"
+    },
+    {
+      "filePath": "constants/userPermissions.ts"
+    },
+    {
+      "filePath": "controller/user.controller.ts"
+    },
+    {
+      "filePath": "enum/user.enum.ts"
+    },
+    {
+      "filePath": "interfaces/users.interface.ts"
+    },
+    {
+      "filePath": "rules/payload.rule.ts"
+    },
+    {
+      "filePath": "rules/user.rule.ts"
+    },
+    {
+      "filePath": "schema/Users.ts"
+    },
+    {
+      "filePath": "service/user.service.ts"
+    },
+    {
+      "filePath": "utils/userRole.ts"
+    },
+    {
+      "filePath": "manifest.json"
+    }
+  ]
+}

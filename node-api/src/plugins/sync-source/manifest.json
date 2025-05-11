@@ -1,0 +1,53 @@
+{
+  "name": "sync-source",
+  "version": "1.0.0",
+  "description": "Plugin for syncing source files with remote Version Control API",
+  "default": true,
+  "packages": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0"
+  },
+  "files": [
+    {
+      "filePath": "index.ts"
+    },
+    {
+      "filePath": "README.md"
+    },
+    {
+      "filePath": "syncSourceContainer.ts"
+    },
+    {
+      "filePath": "controllers/source.controller.ts"
+    },
+    {
+      "filePath": "interfaces/routes.interface.ts"
+    },
+    {
+      "filePath": "interfaces/source.interface.ts"
+    },
+    {
+      "filePath": "interfaces/sync.interface.ts"
+    },
+    {
+      "filePath": "schema/VersionTracking.ts"
+    },
+    {
+      "filePath": "services/api.service.ts"
+    },
+    {
+      "filePath": "services/fileSystem.service.ts"
+    },
+    {
+      "filePath": "services/source.service.ts"
+    },
+    {
+      "filePath": "utils/pathMapper.ts"
+    },
+    {
+      "filePath": "manifest.json"
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "name": "node-api",
+  "version": "0.0.1",
+  "description": "Node API Server",
+  "default": true,
+  "files": [
+    {
+      "filePath": "manifest.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": ".editorconfig",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": ".gitignore",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": ".swcrc",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "ecosystem.config.js",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "jest.config.js",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "nodemon.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "package.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "README.md",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "swagger.yaml",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "tsconfig.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "yarn.lock",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/app.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/container.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/database.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/server.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/config/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/constants/httpStatusCode.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/constants/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/controllers/index.controller.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/database/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/enum/RecordDeleteType.enum.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/enum/upload.enum.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/enum/user.enum.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/exceptions/HttpException.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/helpers/pagination.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/locales/en.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/locales/vi.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/error.middleware.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/role.middleware.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/uploadFile.middleware.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/validation.middleware.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/middlewares/versionAndLanguage.middleware.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/routes/index.route.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/routes/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/schedules/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/schemas/users/users.custom.schema.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/services/i18n.service.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/services/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/types/interfaces/express.interface.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/types/interfaces/response.interface.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/types/interfaces/routes.interface.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/utils/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/utils/logger.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/utils/validatorObject.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/user.validation.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/rules/asset.validation.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/rules/auth.validation.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/rules/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/rules/payloadRules.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/validations/rules/rules.ts",
+      "version": "0.0.1"
+    }
+  ]
+}

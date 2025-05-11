@@ -1,0 +1,41 @@
+{
+  "name": "logs",
+  "version": "0.0.1",
+  "description": "Logging plugin for API Server",
+  "default": true,
+  "packages": {
+    "dotenv": "^16.4.1"
+  },
+  "files": [
+    {
+      "filePath": "index.ts"
+    },
+    {
+      "filePath": "INFO.md"
+    },
+    {
+      "filePath": "logsContainer.ts"
+    },
+    {
+      "filePath": "controller/logs.controller.ts"
+    },
+    {
+      "filePath": "enum/logs.enum.ts"
+    },
+    {
+      "filePath": "interface/logs.interface.ts"
+    },
+    {
+      "filePath": "schema/Logs.ts"
+    },
+    {
+      "filePath": "service/logs.service.ts"
+    },
+    {
+      "filePath": "validator/index.ts"
+    },
+    {
+      "filePath": "manifest.json"
+    }
+  ]
+}

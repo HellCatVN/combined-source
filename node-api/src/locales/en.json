@@ -1,0 +1,14 @@
+{
+  "welcome": "Welcome to the API",
+  "description": "This is a versioned and localized API",
+  "api": {
+    "success": "Operation successful",
+    "error": "Operation failed",
+    "notFound": "Resource not found"
+  },
+  "auth": {
+    "login": "Login successful",
+    "logout": "Logout successful",
+    "unauthorized": "Unauthorized access"
+  }
+}

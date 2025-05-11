@@ -1,0 +1,278 @@
+{
+  "name": "react-antd-admin",
+  "version": "0.0.1",
+  "description": "React Admin Dashboard with Ant Design",
+  "default": true,
+  "files": [
+    {
+      "filePath": "index.html",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "package.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "tsconfig.json",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": ".env.example",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": ".gitignore",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "public/robots.txt",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/react-app-env.d.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/api/axiosClient.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/api/configs.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/api/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/api/upload/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/api/users/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/configs/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/constants/env.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/constants/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/useForm.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/useGlobalContext.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/useModalNotify.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/useValidationData.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/react-query/useAuthentication.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/react-query/usePlugins.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/hooks/react-query/useUsers.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/menu.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/systemSettings.interface.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/tabsView.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/asset/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/authentication/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/log/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/plugin/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/response/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/interfaces/user/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/Welcome.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/account/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/errors/errors.css",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/errors/Page404.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/log/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/login/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/plugins/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/plugins/list/components/PluginCard.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/system-settings/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/user/edit/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/user/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/global.store.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/rootReducer.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/tabs-view.store.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/user.store.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/stores/utils.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/styles/styles.css",
+      "version": "0.0.1"
+    }
+  ],
+  "notATextFiles": [
+    {
+      "folderPaths": {
+        "path": "public",
+        "files": [
+          {
+            "filePath": "public/icon512.png",
+            "version": "0.0.1"
+          }
+        ]
+      }
+    },
+    {
+      "folderPaths": {
+        "path": "src/assets/card",
+        "files": [
+          {
+            "filePath": "src/assets/card/welcome-user.png",
+            "version": "0.0.1"
+          }
+        ]
+      }
+    },
+    {
+      "folderPaths": {
+        "path": "src/assets/header",
+        "files": [
+          {
+            "filePath": "src/assets/header/avator.jpeg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/en_US.svg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/language.svg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/moon.svg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/notice.svg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/sun.svg",
+            "version": "0.0.1"
+          },
+          {
+            "filePath": "src/assets/header/zh_CN.svg",
+            "version": "0.0.1"
+          }
+        ]
+      }
+    },
+    {
+      "folderPaths": {
+        "path": "src/assets/logo",
+        "files": [
+          {
+            "filePath": "src/assets/logo/logo.png",
+            "version": "0.0.1"
+          }
+        ]
+      }
+    }
+  ]
+}

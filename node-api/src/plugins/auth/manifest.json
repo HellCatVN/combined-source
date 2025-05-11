@@ -1,0 +1,71 @@
+{
+  "name": "auth",
+  "version": "0.0.1",
+  "description": "Authentication plugin for Node API Server.",
+  "default": true,
+  "packages": {
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.1.1",
+    "inversify": "^6.0.2",
+    "request-ip": "^3.3.0",
+    "zod": "^3.22.4",
+    "dotenv": "^16.4.1"
+  },
+  "files": [
+    {
+      "filePath": "authContainer.ts"
+    },
+    {
+      "filePath": "index.ts"
+    },
+    {
+      "filePath": "constants/adminPermission.ts"
+    },
+    {
+      "filePath": "controller/auth.controller.ts"
+    },
+    {
+      "filePath": "interface/auth.interface.ts"
+    },
+    {
+      "filePath": "interface/refreshToken.interface.ts"
+    },
+    {
+      "filePath": "middleware/auth.middleware.ts"
+    },
+    {
+      "filePath": "middleware/role.middleware.ts"
+    },
+    {
+      "filePath": "schema/RefreshTokens.ts"
+    },
+    {
+      "filePath": "service/auth.service.ts"
+    },
+    {
+      "filePath": "utils/config.ts"
+    },
+    {
+      "filePath": "utils/cookies.ts"
+    },
+    {
+      "filePath": "utils/createToken.ts"
+    },
+    {
+      "filePath": "utils/getIp.ts"
+    },
+    {
+      "filePath": "utils/index.ts"
+    },
+    {
+      "filePath": "utils/role.ts"
+    },
+    {
+      "filePath": "validator/index.ts"
+    },
+    {
+      "filePath": "manifest.json"
+    }
+  ]
+}

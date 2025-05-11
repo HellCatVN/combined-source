@@ -1,0 +1,105 @@
+:root {
+  --light-1: #fff;
+  --dark-1: #000;
+  --dark-2: #1f1f1f;
+}
+
+/* Base styles */
+html,
+body,
+#root,
+#root > * {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-size: 14px;
+}
+
+a {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Theme styles */
+[data-theme="light"] {
+  background-color: var(--light-1);
+}
+
+[data-theme="light"] .bg-1,
+[data-theme="light"] .bg-2 {
+  background-color: var(--light-1);
+}
+
+[data-theme="light"] .ant-layout-sider {
+  background-color: var(--light-1);
+}
+
+[data-theme="light"] .text-1 {
+  color: #000;
+}
+
+[data-theme="light"] .text-2 {
+  color: rgba(0,0,0,.85);
+}
+
+[data-theme="dark"] .bg-1 {
+  background-color: var(--dark-1);
+}
+
+[data-theme="dark"] .bg-2 {
+  background-color: var(--dark-2);
+}
+
+[data-theme="dark"] .text-1 {
+  color: #fff;
+}
+
+[data-theme="dark"] .text-2 {
+  color: rgba(255,255,255,.65);
+}
+
+/* Form and layout styles */
+#searchForm > .ant-row > .ant-row.ant-form-item {
+  width: 100%;
+  text-align: right;
+  padding-right: 12px;
+}
+
+#searchForm > .ant-row > .ant-row.ant-form-item .ant-col {
+  flex: 1;
+  max-width: 100%;
+  width: 100%;
+}
+
+#searchForm > .ant-row > .ant-row.ant-form-item .ant-col .ant-btn:first-child {
+  margin-right: 10px;
+}
+
+/* Loading styles */
+.app-loading-wrapper.ant-spin-spinning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ant Design resets */
+.ant-list-item {
+  padding: 12px 12px !important;
+}
+
+.ant-table-cell .ant-btn.ant-btn-link {
+  padding: 0 4px !important;
+}
+
+.ant-btn + .ant-btn {
+  margin-left: 10px;
+}

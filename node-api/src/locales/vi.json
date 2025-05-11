@@ -1,0 +1,14 @@
+{
+  "welcome": "Chào mừng đến với API",
+  "description": "Đây là API đa ngôn ngữ và có phiên bản",
+  "api": {
+    "success": "Thao tác thành công",
+    "error": "Thao tác thất bại",
+    "notFound": "Không tìm thấy tài nguyên"
+  },
+  "auth": {
+    "login": "Đăng nhập thành công",
+    "logout": "Đăng xuất thành công",
+    "unauthorized": "Truy cập không được phép"
+  }
+}

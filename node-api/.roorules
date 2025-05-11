@@ -1,0 +1,160 @@
+# Database Schema and Container Rules
+
+## Schema File Structure
+- All schema files should be placed in `src/schemas/[entity-name]/` directory
+- Each entity should have its own directory under `schemas/`
+- Main schema files should be named exactly like the model (e.g., `User.ts` for User model)
+- Supporting schema files should use following patterns:
+  - Custom schemas: `*.custom.schema.ts`
+  - Related schemas: `*.schema.ts`
+  - Interface files: `*.interface.ts`
+
+## Schema File Naming Conventions
+✅ DO:
+- Use PascalCase for main schema files (e.g., `User.ts`, `FileVersion.ts`)
+- Use kebab-case for supporting schema files (e.g., `user-metadata.schema.ts`)
+- Name interface files with `.interface.ts` suffix
+
+❌ DON'T:
+- Mix naming conventions (don't use camelCase or snake_case)
+- Use generic names like "schema.ts" or "model.ts"
+
+## Schema Export Rules
+1. Main Schema Files:
+   ```typescript
+   // Option 1: Default export
+   export default new Schema({...})
+
+   // Option 2: Named export matching filename
+   export const User = new Schema({...})
+
+   // Option 3: SchemaCreator for complex schemas
+   export const SchemaCreator = (customSchema, options) => {
+     return new Schema({...})
+   }
+   ```
+
+2. Custom Schema Files:
+   ```typescript
+   // [entity].custom.schema.ts
+   export const customSchema = {...}
+   export const customRelatedModels = {
+     relatedModels: [...]
+   }
+   ```
+
+## Schema Loading Order
+1. Main schema files are loaded first
+2. Custom schemas are applied if they exist
+3. Related models are loaded as needed
+
+## Directory Structure Example
+```
+src/schemas/
+  ├── user/
+  │   ├── User.ts                    # Main schema
+  │   ├── user-metadata.schema.ts    # Related schema
+  │   └── user.custom.schema.ts      # Custom schema config
+  └── fileVersion/
+      ├── FileVersion.ts
+      └── file-metadata.schema.ts
+```
+
+## Common Patterns
+1. Schema Creation:
+   ```typescript
+   import { Schema } from 'mongoose';
+
+   export default new Schema({
+     field1: { type: String },
+     field2: { type: Number }
+   });
+   ```
+
+2. Schema with Relations:
+   ```typescript
+   import { Schema } from 'mongoose';
+
+   export const SchemaCreator = (customSchema, { relatedModels }) => {
+     return new Schema({
+       ...customSchema,
+       relatedField: { type: Schema.Types.ObjectId, ref: 'RelatedModel' }
+     });
+   };
+   ```
+
+## Container Architecture
+The system uses a dual-container approach for model management:
+
+1. DatabaseContainer (Global)
+   - Central registry for all models
+   - All schemas from `/schemas/` are automatically bound
+   - Access models using schema name: `DatabaseContainer.getModel('User')`
+   - Model names match schema file names (e.g., User.ts -> 'User')
+
+2. PluginContainers (Plugin-specific)
+   - Located in `src/plugins/[plugin-name]/[plugin-name]Container`
+   - Models are bound as Collections: `[ModelName]Collection`
+   - Used by specific plugins for their functionality
+   - Optional - plugins may not have containers
+
+## Accessing Models
+
+1. From DatabaseContainer (Preferred for general use):
+```typescript
+import DatabaseContainer from '@containers/DatabaseContainer';
+
+const UserModel = DatabaseContainer.getModel('User');
+const users = await UserModel.find({});
+```
+
+2. From Plugin Container (Plugin-specific usage):
+```typescript
+import { userContainer } from '@plugins/user/userContainer';
+
+const UserModel = userContainer.get('UserCollection');
+const users = await UserModel.find({});
+```
+
+## Container Best Practices
+1. Use DatabaseContainer for general model access
+2. Use PluginContainers only for plugin-specific functionality
+3. Model names in DatabaseContainer match schema file names exactly
+4. Plugin model bindings use the Collection suffix
+5. Use type-safe model access when possible with TypeScript
+6. Always check if model exists before using with getModel()
+
+Example:
+```typescript
+import DatabaseContainer from '@containers/DatabaseContainer';
+
+// Get model from container
+const UserModel = DatabaseContainer.getModel('User');
+if (!UserModel) {
+  throw new Error('User model not found');
+}
+
+// Use the model
+const users = await UserModel.find({});
+```
+
+## Best Practices
+1. Always define explicit types for schema fields
+2. Use SchemaCreator pattern for schemas that need runtime configuration
+3. Keep related schemas in same directory as main schema
+4. Document schema fields with comments
+5. Use TypeScript interfaces to define document structure
+
+## Import Examples
+```typescript
+// Direct schema import
+import UserSchema from '@schemas/user/User';
+
+// Custom schema import
+import { customSchema } from '@schemas/user/user.custom.schema';
+
+// Multiple schema imports
+import {
+  UserSchema,
+  SchemaCreator
+} from '@schemas/user/User';
