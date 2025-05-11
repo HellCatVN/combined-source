@@ -1,9 +1,13 @@
 {
   "name": "react-antd-admin",
   "version": "0.0.1",
-  "description": "React Admin Dashboard with Ant Design",
+  "description": "React Admin Dashboard with Ant Design.asda",
   "default": true,
   "files": [
+    {
+      "filePath": "manifest.json",
+      "version": "0.0.1"
+    },
     {
       "filePath": "index.html",
       "version": "0.0.1"

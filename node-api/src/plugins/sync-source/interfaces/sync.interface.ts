@@ -28,6 +28,7 @@ export interface FileContent {
   filePath: string;
   content: string;
   version: string;
+  exists?: boolean;  // Flag to indicate if file already exists
 }
 
 export interface FileContentResponse {

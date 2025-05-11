@@ -68,7 +68,7 @@ export const PluginCard: FC<PluginCardProps> = ({
               onClick={() => onUpdate(plugin._id, plugin.sourceName)}
               disabled={isUpdateInProgress}
             >
-              Update
+              Update Local
             </Button>
           ) : (
             <Button
@@ -90,7 +90,7 @@ export const PluginCard: FC<PluginCardProps> = ({
             onClick={() => onSync(plugin._id, plugin.sourceName)}
             disabled={isUpdateInProgress}
           >
-            Sync
+            Upload Remote
           </Button>,
         ]}
       >

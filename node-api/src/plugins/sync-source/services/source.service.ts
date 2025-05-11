@@ -138,11 +138,21 @@ export class SourceService {
       }
 
       try {
-        // Process each batch
+        // Collect all file contents first
+        const allFileContents = [];
         for (const batch of batches) {
           const fileContents = await sourceApiService.getFileContents(sourceId, batch);
-          await fileSystemService.syncFiles(fileContents, sourceName);
+          allFileContents.push(...fileContents);
         }
+
+        // Display files that will be updated
+        console.table(allFileContents.map(file => ({
+          filePath: file.filePath,
+          action: file.exists ? 'Overwrite' : 'Create'
+        })));
+
+        // Process the files
+        await fileSystemService.syncFiles(allFileContents, sourceName);
 
         // Update version tracking
         const latestVersion = new Date().toISOString();
@@ -153,7 +163,7 @@ export class SourceService {
         });
 
         // Trigger service restart after all batches are processed
-        fileSystemService.triggerServiceRestart();
+        fileSystemService.triggerServiceRestart(sourceName);
 
         return;
 

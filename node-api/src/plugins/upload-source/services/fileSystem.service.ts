@@ -39,11 +39,6 @@ class FileSystemService {
   getRelativePath(basePath: string, filePath: string): string {
     return path.relative(path.dirname(basePath), filePath);
   }
-
-  isValidSourceFile(filePath: string): boolean {
-    const ext = path.extname(filePath);
-    return ['.ts', '.js', '.json'].includes(ext) && !filePath.includes('node_modules');
-  }
 }
 
 export const fileSystemService = new FileSystemService();

@@ -35,20 +35,27 @@ export class PathMapper {
    * Gets the manifest path for a source
    */
   public static async getManifestPath(sourceName: string): Promise<string> {
-    // First check in plugins directory
-    const pluginManifestPath = path.join(process.cwd(), 'src', 'plugins', sourceName, 'manifest.json');
+    let manifestPath: string;
+
     try {
-      await fs.access(pluginManifestPath);
-      return pluginManifestPath;
-    } catch {
-      // If not found in plugins, check root manifest for other types
-      const rootManifestPath = path.join(process.cwd(), 'manifest.json');
-      try {
-        await fs.access(rootManifestPath);
-        return rootManifestPath;
-      } catch {
-        throw new Error(`Manifest not found for source ${sourceName}`);
+      if (sourceName === 'node-api') {
+        manifestPath = path.join(process.cwd(), 'manifest.json');
+        await fs.access(manifestPath);
+        return manifestPath;
       }
+
+      if (sourceName === 'react-antd-admin') {
+        manifestPath = path.join(process.cwd(), '..', 'react-antd-admin', 'manifest.json');
+        await fs.access(manifestPath);
+        return manifestPath;
+      }
+
+      // Check in plugins directory for other sources
+      manifestPath = path.join(process.cwd(), 'src', 'plugins', sourceName, 'manifest.json');
+      await fs.access(manifestPath);
+      return manifestPath;
+    } catch {
+      throw new Error(`Manifest not found for source ${sourceName}`);
     }
   }
 }

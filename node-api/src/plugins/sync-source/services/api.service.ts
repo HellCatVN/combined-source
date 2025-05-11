@@ -81,7 +81,6 @@ export class SourceApiService {
       const { data } = response.data as FileContentResponse;
       return data;
     } catch (error) {
-      console.error('Failed to get file contents:', error);
       throw error;
     }
   }
