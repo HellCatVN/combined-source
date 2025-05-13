@@ -24,8 +24,6 @@ class UploadService {
   private async getValidFiles(manifestPath: string): Promise<string[]> {
     const manifest = await manifestService.readManifest(manifestPath);
     const manifestDir = manifestPath.substring(0, manifestPath.lastIndexOf('/'));
-
-    console.log(manifest.files);
     
     // Convert manifest relative paths to absolute paths and filter valid files
     return manifest.files
@@ -135,8 +133,6 @@ class UploadService {
       if (!validFiles.length) {
         return { success: true, message: "No files found in source directory" };
       }
-
-      console.log('validFiles', validFiles);
 
       // Get remote contents
       const remoteContents = await this.buildRemoteContentsMap(sourceId, validFiles, manifestPath);

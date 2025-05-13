@@ -5,6 +5,42 @@
   "default": true,
   "files": [
     {
+      "filePath": "src/App.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/AntApp.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/declaration.d.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/menuData.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/Layout.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/Header.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/Menu.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/tabView.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/layout/index.css",
+      "version": "0.0.1"
+    },
+    {
       "filePath": "manifest.json",
       "version": "0.0.1"
     },

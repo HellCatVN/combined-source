@@ -67,7 +67,7 @@ function App() {
                       }
                     />
                     <Route
-                      path="admin/system-settings"
+                      path="admin/system-settings/constants"
                       element={
                         <Suspense fallback={<Skeleton />}>
                           <SystemSettings />

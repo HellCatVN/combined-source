@@ -6,6 +6,7 @@ import {
   UnorderedListOutlined,
   UserOutlined,
   AppstoreOutlined,
+  UsbFilled
 } from '@ant-design/icons';
 import { customMenuData } from '@bm/configs';
 
@@ -62,6 +63,13 @@ const menuData = {
       name: 'System Settings',
       icon: <SettingOutlined />,
       roles: ['admin'],
+      children: [
+        {
+          path: '/admin/system-settings/constants',
+          name: 'Constants Settings',
+          icon: <UsbFilled />,
+        },
+      ],
     },
   ],
 };
