@@ -21,8 +21,10 @@ export const SchemaCreator = <Type>(customUserSchema: any = {}, customRelatedMod
       enum: userStatus,
     },
     role: {
-      type: String,
-      default: 'user',
+      type: Schema.Types.ObjectId,
+      ref: 'AuthzRoles',
+      required: true,
+      default: undefined,
     },
     name: {
       type: String,

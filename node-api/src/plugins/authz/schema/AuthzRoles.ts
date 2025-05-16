@@ -1,6 +1,7 @@
 import { Schema } from 'mongoose';
 import { Role } from '../interface/authz.interface';
 import { HttpException } from '@exceptions/HttpException';
+import { SPECIAL_ACTIONS, SPECIAL_RESOURCES, SUPERADMIN_ROLE } from '../constants';
 
 export const authzRolesSchema = new Schema<Role>(
   {
@@ -14,11 +15,16 @@ export const authzRolesSchema = new Schema<Role>(
       type: String,
       required: false,
     },
-    permissions: {
-      type: Map,
-      of: [String],
-      default: new Map(),
-    },
+    permissions: [{
+      resource: {
+        type: String,
+        required: true
+      },
+      action: {
+        type: String,
+        required: true
+      }
+    }],
     isSystem: {
       type: Boolean,
       default: false,
@@ -36,11 +42,7 @@ authzRolesSchema.index({ name: 1 });
 // Validate permissions against existing resources
 authzRolesSchema.pre('save', async function(next) {
   try {
-    const role = this;
-    const resources = Array.from(role.permissions.keys());
-    
-    // Note: Resource validation will be handled by the service layer
-    // since we'll be using dependency injection for the resource model
+    // Resource validation will be handled by the service layer
     next();
   } catch (error) {
     next(new HttpException(400, error.message));
@@ -49,23 +51,40 @@ authzRolesSchema.pre('save', async function(next) {
 
 // Enhanced method to check if role has specific permission
 authzRolesSchema.methods.hasPermission = function(resource: string, action: string): boolean {
-  // Check if role has direct permission
-  const actions = this.permissions.get(resource);
-  if (!actions) return false;
-  
-  // Check for specific action or wildcard
-  if (actions.includes(action) || actions.includes('*')) {
+  // Super admin role has full access
+  if (this.name === SUPERADMIN_ROLE) {
     return true;
   }
-  
-  // Check for hierarchical permissions (e.g., 'posts:*' matches 'posts:create')
-  const wildcardActions = actions.filter(a => a.endsWith(':*'));
-  for (const wildcardAction of wildcardActions) {
-    const prefix = wildcardAction.slice(0, -1); // Remove '*'
-    if (action.startsWith(prefix)) {
+
+  return this.permissions.some(permission => {
+    // Check for global wildcard permission
+    if (permission.resource === SPECIAL_RESOURCES.ALL || permission.resource === SPECIAL_RESOURCES.WILDCARD) {
+      if (permission.action === SPECIAL_ACTIONS.ALL || permission.action === SPECIAL_ACTIONS.MANAGE) {
+        return true;
+      }
+    }
+
+    // Check for resource-level wildcard action
+    if (permission.resource === resource) {
+      if (permission.action === SPECIAL_ACTIONS.ALL || 
+          permission.action === SPECIAL_ACTIONS.MANAGE) {
+        return true;
+      }
+    }
+
+    // Check for exact match
+    if (permission.resource === resource && permission.action === action) {
       return true;
     }
-  }
-  
-  return false;
+    
+    // Check for hierarchical permissions (e.g., 'posts:*' matches 'posts:create')
+    if (permission.resource === resource && permission.action.endsWith(':*')) {
+      const prefix = permission.action.slice(0, -1); // Remove '*'
+      if (action.startsWith(prefix)) {
+        return true;
+      }
+    }
+    
+    return false;
+  });
 };

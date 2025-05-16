@@ -1,12 +1,13 @@
 import { ZodObject } from "zod";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 import { Model } from "mongoose";
 import { userGender, userStatus } from "../enum/user.enum";
+import { Role } from "../../authz/interface/authz.interface";
 
 export interface IUser {
   _id: string;
   status: userStatus;
-  role: string;
+  role: Types.ObjectId | Role;
   name: string;
   username: string;
   email: string;
@@ -17,8 +18,13 @@ export interface IUser {
   isDeleted: boolean;
 }
 
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends Omit<IUser, 'role'>, Document {
   _id: string;
+  role: Types.ObjectId;
+}
+
+export interface IPopulatedUser extends Omit<IUser, 'role'> {
+  role: Role;
 }
 
 export interface IUserPermission {

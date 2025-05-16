@@ -1,5 +1,6 @@
 import { Document } from 'mongoose';
 import { IUserDocument } from '../../users/interfaces/users.interface';
+import { SpecialResource, SpecialAction } from '../constants';
 
 export interface IResource extends Document {
   name: string;
@@ -21,18 +22,15 @@ export interface IEndpointConfig extends Document {
   updatedAt: Date;
 }
 
-export interface Permission extends Document {
-  resourceName: string;
-  actions: string[];
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface Permission {
+  resource: string | SpecialResource;
+  action: string | SpecialAction;
 }
 
 export interface Role extends Document {
   name: string;
   description?: string;
-  permissions: Map<string, string[]>;
+  permissions: Permission[];
   isSystem?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -42,17 +40,13 @@ export interface Role extends Document {
 export interface CreateRoleDto {
   name: string;
   description?: string;
-  permissions: {
-    [resourceName: string]: string[];
-  };
+  permissions: Permission[];
 }
 
 export interface UpdateRoleDto {
   name?: string;
   description?: string;
-  permissions?: {
-    [resourceName: string]: string[];
-  };
+  permissions?: Permission[];
 }
 
 export interface CheckPermissionParams {
@@ -66,7 +60,7 @@ export interface CheckPermissionParams {
 export interface ResolvedPermission {
   resource: string;
   action: string;
-  source: 'params' | 'database' | 'default';
+  source: 'params' | 'database' | 'default' | 'special';
 }
 
 export interface CreateResourceDto {

@@ -10,6 +10,7 @@ import {
   CreateEndpointConfigDto, UpdateEndpointConfigDto,
   Permission, Role, IResource, IEndpointConfig
 } from '../interface/authz.interface';
+import { SPECIAL_RESOURCES, SPECIAL_ACTIONS, SUPERADMIN_ROLE } from '../constants';
 
 class AuthzService {
   public roleModel = authzContainer.get<Model<Role>>('AuthzRolesCollection');
@@ -22,9 +23,44 @@ class AuthzService {
       throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Role name is required');
     }
 
+    if (!Array.isArray(roleData.permissions)) {
+      throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Permissions must be an array');
+    }
+
     const existingRole = await this.roleModel.findOne({ name: roleData.name });
     if (existingRole) {
       throw new HttpException(httpStatusCode.ClientError.Conflict, `Role ${roleData.name} already exists`);
+    }
+
+    // Validate permissions against existing resources
+    const resources = await this.resourceModel.find();
+    const resourceMap = new Map(resources.map(r => [r.name, r.allowedActions]));
+
+    for (const permission of roleData.permissions) {
+      // Skip validation for special resources
+      if (permission.resource === SPECIAL_RESOURCES.ALL || permission.resource === SPECIAL_RESOURCES.WILDCARD) {
+        continue;
+      }
+
+      const allowedActions = resourceMap.get(permission.resource);
+      if (!allowedActions) {
+        throw new HttpException(
+          httpStatusCode.ClientError.BadRequest,
+          `Invalid resource: ${permission.resource}`
+        );
+      }
+      
+      // Skip validation for special actions
+      if (permission.action === SPECIAL_ACTIONS.ALL || permission.action === SPECIAL_ACTIONS.MANAGE) {
+        continue;
+      }
+
+      if (!allowedActions.includes(permission.action)) {
+        throw new HttpException(
+          httpStatusCode.ClientError.BadRequest,
+          `Invalid action '${permission.action}' for resource '${permission.resource}'`
+        );
+      }
     }
 
     const role = new this.roleModel(roleData);
@@ -46,6 +82,43 @@ class AuthzService {
       throw new HttpException(httpStatusCode.ClientError.Forbidden, 'System roles cannot be modified');
     }
 
+    if (roleData.permissions) {
+      if (!Array.isArray(roleData.permissions)) {
+        throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Permissions must be an array');
+      }
+
+      // Validate permissions against existing resources
+      const resources = await this.resourceModel.find();
+      const resourceMap = new Map(resources.map(r => [r.name, r.allowedActions]));
+
+      for (const permission of roleData.permissions) {
+        // Skip validation for special resources
+        if (permission.resource === SPECIAL_RESOURCES.ALL || permission.resource === SPECIAL_RESOURCES.WILDCARD) {
+          continue;
+        }
+
+        const allowedActions = resourceMap.get(permission.resource);
+        if (!allowedActions) {
+          throw new HttpException(
+            httpStatusCode.ClientError.BadRequest,
+            `Invalid resource: ${permission.resource}`
+          );
+        }
+        
+        // Skip validation for special actions
+        if (permission.action === SPECIAL_ACTIONS.ALL || permission.action === SPECIAL_ACTIONS.MANAGE) {
+          continue;
+        }
+
+        if (!allowedActions.includes(permission.action)) {
+          throw new HttpException(
+            httpStatusCode.ClientError.BadRequest,
+            `Invalid action '${permission.action}' for resource '${permission.resource}'`
+          );
+        }
+      }
+    }
+
     Object.assign(role, roleData);
     await role.save();
     return role;
@@ -64,40 +137,70 @@ class AuthzService {
     await role.deleteOne();
   }
 
+  private isPopulatedRole(role: any): role is Role {
+    return role && typeof role === 'object' && 'name' in role && 'permissions' in role;
+  }
+
+  private matchesSpecialResource(permission: Permission, resource: string): boolean {
+    return permission.resource === SPECIAL_RESOURCES.ALL || 
+           permission.resource === SPECIAL_RESOURCES.WILDCARD || 
+           permission.resource === resource;
+  }
+
+  private matchesSpecialAction(permission: Permission, action: string): boolean {
+    return permission.action === SPECIAL_ACTIONS.ALL || 
+           permission.action === SPECIAL_ACTIONS.MANAGE || 
+           permission.action === action;
+  }
+
   public async checkPermission({ user, resource, action }: CheckPermissionParams) {
     if (!user || !resource || !action) {
       throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Missing required parameters');
     }
 
-    // Get user data
-    const userData = await this.userService.findUserById(user.username);
+    let userRole: Role | null;
     
-    // If user has admin role, grant all permissions
-    if (userData.role === 'admin') {
+    if (this.isPopulatedRole(user.role)) {
+      userRole = user.role;
+    } else {
+      userRole = await this.roleModel.findById(user.role);
+    }
+
+    if (!userRole) {
+      throw new HttpException(httpStatusCode.ClientError.NotFound, 'User role not found');
+    }
+
+    // Check for superadmin role
+    if (userRole.name === SUPERADMIN_ROLE) {
       return true;
     }
 
-    // Get all roles associated with the user's role
-    const roles = await this.roleModel.find({ name: userData.role });
-    
-    // Check each role's permissions
-    for (const role of roles) {
-      if (role.hasPermission(resource, action)) {
-        return true;
-      }
+    // If user has admin role, grant all permissions
+    if (userRole.name === 'admin') {
+      return true;
     }
 
-    return false;
+    // Check role's permissions including special cases
+    return userRole.permissions.some(permission => 
+      this.matchesSpecialResource(permission, resource) && 
+      this.matchesSpecialAction(permission, action)
+    );
   }
 
   public async getPermissions() {
-    // Get permissions from resources instead
     const resources = await this.resourceModel.find();
-    return resources.map(resource => ({
-      resourceName: resource.name,
-      actions: resource.allowedActions,
-      description: resource.description
-    }));
+    const permissions: Permission[] = [];
+    
+    resources.forEach(resource => {
+      resource.allowedActions.forEach(action => {
+        permissions.push({
+          resource: resource.name,
+          action: action
+        });
+      });
+    });
+    
+    return permissions;
   }
 
   // Resource Management Methods

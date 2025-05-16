@@ -1,236 +1,113 @@
-# Authorization Plugin (authz)
+# Authorization Plugin
 
-## Overview
+This plugin provides role-based access control (RBAC) with support for fine-grained permissions and special access cases.
 
-The authz plugin implements a hybrid RBAC/ACL (Role-Based Access Control/Access Control List) system that provides flexible, database-driven permission management. Key features include:
+## Features
 
-- Resource-based permission management
 - Role-based access control
-- Dynamic endpoint configuration
-- Flexible middleware options
-- Database-driven permission checks
+- Resource and action-based permissions
+- Special access cases (wildcards and superadmin)
+- Hierarchical permissions
+- System roles protection
 
-## Components
+## Core Concepts
 
-### 1. AuthzRoles Schema
-Manages role definitions and their associated permissions:
-```typescript
-interface Role {
-  name: string;
-  description?: string;
-  permissions: Map<string, string[]>;
-  isSystem?: boolean;
-  hasPermission(resource: string, action: string): boolean;
-}
-```
+### Roles
 
-### 2. AuthzResources Schema
-Defines protected resources and their allowed actions:
-```typescript
-interface IResource {
-  name: string;
-  description?: string;
-  allowedActions: string[];
-  isActive: boolean;
-}
-```
+Roles are collections of permissions that can be assigned to users. The system includes the following default roles:
 
-### 3. AuthzEndpointConfig Schema
-Maps API endpoints to required permissions:
-```typescript
-interface IEndpointConfig {
-  path: string;
-  method: string;
-  resource: string;
-  action: string;
-  description?: string;
-  isActive: boolean;
-}
-```
+- `superadmin`: Has unrestricted access to all resources and actions (uses wildcards)
+- `admin`: Has full access to all defined resources
+- `manager`: Has full access to users and read access to resources
+- `user`: Has basic read/update permissions
 
-### 4. AuthzPermissions Schema
-Tracks permission assignments:
-```typescript
-interface Permission {
-  resourceName: string;
-  actions: string[];
-  description?: string;
-}
-```
+### Resources
 
-## API Endpoints
+Resources represent the entities or features that can be accessed. Each resource has:
 
-### Resource Management
-```typescript
-// Create resource
-POST /resources
-{
-  "name": "articles",
-  "description": "Blog articles",
-  "allowedActions": ["read", "create", "update", "delete"]
-}
+- Name (unique identifier)
+- Description
+- Allowed Actions
+- Active Status
 
-// List resources
-GET /resources
+### Permissions
 
-// Update resource
-PUT /resources/:id
-{
-  "allowedActions": ["read", "create", "update", "delete", "publish"]
-}
+Permissions are combinations of:
+- Resource
+- Action
 
-// Delete resource
-DELETE /resources/:id
-```
+Special cases:
+- Resource wildcards: `'all'` or `'*'` grants access to all resources
+- Action wildcards: `'*'` or `'manage'` grants all actions on a resource
 
-### Role Management
-```typescript
-// Create role
-POST /roles
-{
-  "name": "editor",
-  "description": "Content editor",
-  "permissions": {
-    "articles": ["read", "create", "update"],
-    "comments": ["read", "delete"]
-  }
-}
+### Special Access Cases
 
-// List roles
-GET /roles
+1. Super Admin Role:
+   - Designated by role name `'superadmin'`
+   - Has unrestricted access to all resources and actions
+   - Bypasses all permission checks
 
-// Update role
-PUT /roles/:id
-{
-  "permissions": {
-    "articles": ["read", "create", "update", "publish"]
-  }
-}
+2. Special Resources:
+   - `'all'` or `'*'`: Matches any resource
+   - Useful for granting broad access rights
 
-// Delete role
-DELETE /roles/:id
-```
+3. Special Actions:
+   - `'*'`: All actions on a resource
+   - `'manage'`: Full control over a resource
+   - Hierarchical actions (e.g., `'posts:*'` matches `'posts:create'`)
 
-### Endpoint Configuration
-```typescript
-// Create endpoint config
-POST /endpoint-configs
-{
-  "path": "/api/articles/:id",
-  "method": "PUT",
-  "resource": "articles",
-  "action": "update"
-}
+## Usage
 
-// List configs
-GET /endpoint-configs
-
-// Update config
-PUT /endpoint-configs/:id
-{
-  "isActive": false
-}
-
-// Delete config
-DELETE /endpoint-configs/:id
-```
-
-## Middleware Usage
-
-### Basic Permission Check
-```typescript
-import { checkPermission } from './authz/middleware/authz.middleware';
-
-// Check specific permission
-router.post('/articles', 
-  checkPermission('articles', 'create'), 
-  createArticle
-);
-
-// Dynamic permission check based on endpoint config
-router.put('/articles/:id',
-  dynamicPermissionCheck,
-  updateArticle
-);
-```
-
-### Advanced Permission Checks
-```typescript
-// Check multiple permissions (ANY)
-router.delete('/articles/:id',
-  checkAnyPermission([
-    { resource: 'articles', action: 'delete' },
-    { resource: 'admin', action: 'manage_content' }
-  ]),
-  deleteArticle
-);
-
-// Check multiple permissions (ALL)
-router.post('/articles/:id/publish',
-  checkAllPermissions([
-    { resource: 'articles', action: 'update' },
-    { resource: 'articles', action: 'publish' }
-  ]),
-  publishArticle
-);
-
-// Pattern-based endpoint permission check
-router.get('/articles/*',
-  checkEndpointPermission,
-  getArticle
-);
-```
-
-### Custom Database Configuration
-```typescript
-// Override database model in middleware
-import { AuthzService } from './authz/service/authz.service';
-import customAuthzModel from './models/customAuthz';
-
-const authzService = new AuthzService(customAuthzModel);
-router.use(checkPermission('resource', 'action', authzService));
-```
-
-## Integration Example
+### Creating Roles
 
 ```typescript
-import express from 'express';
-import { authzMiddleware } from './authz/middleware';
-
-const app = express();
-
-// Apply global dynamic permission checking
-app.use(dynamicPermissionCheck);
-
-// Protected routes
-router.post('/articles',
-  checkPermission('articles', 'create'),
-  async (req, res) => {
-    // Create article logic
-  }
-);
-
-router.put('/articles/:id',
-  checkAnyPermission([
-    { resource: 'articles', action: 'update' },
-    { resource: 'admin', action: 'manage_content' }
-  ]),
-  async (req, res) => {
-    // Update article logic
-  }
-);
-
-// Resource management routes
-router.get('/resources',
-  checkPermission('authz', 'manage'),
-  authzController.getResources
-);
-
-// Role management routes
-router.post('/roles',
-  checkPermission('authz', 'manage'),
-  authzController.createRole
-);
+await authzService.createRole({
+  name: 'editor',
+  description: 'Content editor role',
+  permissions: [
+    { resource: 'posts', action: 'manage' },
+    { resource: 'comments', action: 'moderate' }
+  ]
+});
 ```
 
-This authorization system provides flexible, granular access control that can be easily configured and extended. The hybrid RBAC/ACL approach allows for both role-based permissions and direct resource-action permissions, while the database-driven design enables dynamic permission updates without code changes.
+### Checking Permissions
+
+```typescript
+const hasAccess = await authzService.checkPermission({
+  user,
+  resource: 'posts',
+  action: 'create'
+});
+```
+
+### Super Admin Access
+
+```typescript
+await authzService.createRole({
+  name: 'superadmin',
+  description: 'Unrestricted access',
+  permissions: [
+    { resource: 'all', action: '*' }
+  ]
+});
+```
+
+## API Reference
+
+### AuthzService Methods
+
+- `createRole(roleData: CreateRoleDto)`
+- `getRoles()`
+- `updateRole(id: string, roleData: UpdateRoleDto)`
+- `deleteRole(id: string)`
+- `checkPermission(params: CheckPermissionParams)`
+- `getPermissions()`
+- `createResource(resourceData: CreateResourceDto)`
+- `getResources()`
+- `updateResource(id: string, resourceData: UpdateResourceDto)`
+- `deleteResource(id: string)`
+- `createEndpointConfig(configData: CreateEndpointConfigDto)`
+- `getEndpointConfigs()`
+- `updateEndpointConfig(id: string, configData: UpdateEndpointConfigDto)`
+- `deleteEndpointConfig(id: string)`
