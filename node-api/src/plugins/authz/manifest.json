@@ -1,0 +1,46 @@
+{
+  "name": "authz",
+  "version": "0.0.1",
+  "description": "Authorization plugin supporting hybrid RBAC/ACL model",
+  "default": true,
+  "packages": {
+    "mongoose": "^8.1.1",
+    "inversify": "^6.0.2",
+    "zod": "^3.22.4"
+  },
+  "files": [
+    {
+      "filePath": "index.ts"
+    },
+    {
+      "filePath": "README.md"
+    },
+    {
+      "filePath": "authzContainer.ts"
+    },
+    {
+      "filePath": "controller/authz.controller.ts"
+    },
+    {
+      "filePath": "interface/authz.interface.ts"
+    },
+    {
+      "filePath": "middleware/authz.middleware.ts"
+    },
+    {
+      "filePath": "schema/AuthzRoles.ts"
+    },
+    {
+      "filePath": "schema/AuthzResources.ts"
+    },
+    {
+      "filePath": "schema/AuthzEndpointConfig.ts"
+    },
+    {
+      "filePath": "service/authz.service.ts"
+    },
+    {
+      "filePath": "manifest.json"
+    }
+  ]
+}
