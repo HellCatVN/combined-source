@@ -3,15 +3,17 @@ import { setGlobalState } from '@stores/global.store';
 import { App, ConfigProvider, Spin, theme as antdTheme } from 'antd';
 import enUS from 'antd/es/locale/en_US';
 import { ReactNode, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AbilityProvider } from './providers/AbilityProvider';
 import './styles/styles.css';
+
+const queryClient = new QueryClient();
 
 const AntApp = ({ children }: { children: ReactNode }) => {
   const dispatch = useDispatch();
-
   const { locale } = useGlobal();
-
   const { theme, requests } = useSelector((state: any) => state.global);
 
   /** initial theme */
@@ -75,7 +77,11 @@ const AntApp = ({ children }: { children: ReactNode }) => {
           tip={'Loading...'}
           fullscreen
         ></Spin>
-        {children}
+        <QueryClientProvider client={queryClient}>
+          <AbilityProvider>
+            {children}
+          </AbilityProvider>
+        </QueryClientProvider>
       </ConfigProvider>
     </App>
   );

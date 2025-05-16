@@ -4,11 +4,10 @@ import { IUserDocument } from '../../users/interfaces/users.interface';
 import { ResolvedPermission } from '../interface/authz.interface';
 import { authzEndpointConfigSchema } from '../schema/AuthzEndpointConfig';
 import mongoose from 'mongoose';
-import { authzContainer } from '../authzContainer';
-import { AuthzService } from '../interface/authz.interface';
+import AuthzService from '../service/authz.service';
 
 const EndpointConfigModel = mongoose.model('EndpointConfig', authzEndpointConfigSchema);
-const authzService = authzContainer.get<AuthzService>('AuthzService');
+const authzService = new AuthzService();
 
 export interface RequestWithUser extends Request {
   user: IUserDocument;

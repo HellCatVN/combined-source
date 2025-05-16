@@ -4,14 +4,13 @@ import { authMiddleware } from "../auth/middleware/auth.middleware";
 import { roleMiddleware } from "../auth/middleware/role.middleware";
 import { userRoleManager } from "../users/utils/userRole";
 import { AuthzController } from "./controller/authz.controller";
-import { authzContainer } from "./authzContainer";
 import { Role, IResource, IEndpointConfig } from "./interface/authz.interface";
 import { authzRolesSchema } from "./schema/AuthzRoles";
 import { authzResourcesSchema } from "./schema/AuthzResources";
 import { authzEndpointConfigSchema } from "./schema/AuthzEndpointConfig";
 
 export function RouteCreator(path: string, router: Router) {
-  const authzController = new AuthzController(authzContainer);
+  const authzController = new AuthzController();
   const userRoles = userRoleManager.getUserRoles;
 
   router.get(
@@ -127,4 +126,3 @@ export * from "./service/authz.service";
 export * from "./schema/AuthzRoles";
 export * from "./schema/AuthzResources";
 export * from "./schema/AuthzEndpointConfig";
-export * from "./authzContainer";

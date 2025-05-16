@@ -26,12 +26,26 @@ const defaultResources = [
   }
 ];
 
+// Default role for users without role assignment
+const DEFAULT_ROLE = 'user';
+
 const roleMapping: RoleMappingConfig = {
   [SUPERADMIN_ROLE]: {
     name: SUPERADMIN_ROLE,
     description: 'Super administrator with unrestricted access to all resources',
     permissions: [
       { resource: SPECIAL_RESOURCES.ALL, action: SPECIAL_ACTIONS.ALL }
+    ],
+    isSystem: true
+  },
+  [DEFAULT_ROLE]: {
+    name: DEFAULT_ROLE,
+    description: 'Default role with basic read access',
+    permissions: [
+      { resource: 'users', action: 'read' },
+      { resource: 'users', action: 'list' },
+      { resource: 'resources', action: 'read' },
+      { resource: 'resources', action: 'list' }
     ],
     isSystem: true
   },
@@ -55,12 +69,13 @@ const roleMapping: RoleMappingConfig = {
     ],
     isSystem: true
   },
-  user: {
-    name: 'user',
-    description: 'Standard user with basic permissions',
+  standard_user: {
+    name: 'standard_user',
+    description: 'Standard user with expanded permissions',
     permissions: [
       { resource: 'users', action: 'read' },
       { resource: 'users', action: 'update' },
+      { resource: 'users', action: 'list' },
       { resource: 'resources', action: 'read' },
       { resource: 'resources', action: 'list' }
     ],
@@ -107,7 +122,7 @@ export class RoleMigration {
 
       const role = await roleModel.create([{
         name: config.name,
-        description: config.description,
+        description: config.description, 
         permissions: config.permissions,
         isSystem: true
       }], { session });
@@ -160,43 +175,46 @@ export class RoleMigration {
         // Update users with new role references
         const cursor = userModel.find({}).session(session).cursor();
 
+        // Create default role first to ensure it exists
+        const defaultRoleId = await this.createRole(roleModel, DEFAULT_ROLE, roleMapping[DEFAULT_ROLE], session, logger);
+        if (!defaultRoleId) {
+          throw new Error('Failed to create default role');
+        }
+
         for await (const user of cursor) {
           context.processed++;
           
           const oldRole = user.role?.toString();
-          if (!oldRole) {
-            context.skipped++;
-            context.errors.push({
-              userId: user._id.toString(),
-              oldRole: 'undefined',
-              error: 'No role found for user',
-              timestamp: new Date()
-            });
-            continue;
-          }
-
-          const newRoleId = context.newRoles.get(oldRole);
-          if (!newRoleId) {
-            context.skipped++;
-            context.errors.push({
-              userId: user._id.toString(),
-              oldRole,
-              error: 'No mapping found for role',
-              timestamp: new Date()
-            });
-            continue;
-          }
+          logger.info(`🔄 Processing user: ${user.username}`);
 
           try {
+            let newRoleId: Types.ObjectId | null;
+            
+            if (!oldRole) {
+              // Assign default role to users without role
+              newRoleId = defaultRoleId;
+              logger.info(`👤 Assigning '${DEFAULT_ROLE}' role to user: ${user.username}`);
+            } else {
+              // Try to map existing role
+              newRoleId = context.newRoles.get(oldRole);
+              if (!newRoleId) {
+                // Fall back to default role if mapping not found
+                newRoleId = defaultRoleId;
+                logger.warn(`No mapping found for role '${oldRole}', using default role`);
+              }
+            }
+
             await userModel.updateOne(
               { _id: user._id },
               { $set: { role: newRoleId } }
             ).session(session);
+            
             context.updated++;
           } catch (error) {
+            logger.error(`Failed to update role for user ${user.username}:`, error);
             context.errors.push({
               userId: user._id.toString(),
-              oldRole,
+              oldRole: oldRole || 'undefined',
               error: error instanceof Error ? error.message : 'Unknown error',
               timestamp: new Date()
             });
@@ -239,18 +257,23 @@ export class RoleMigration {
           name: { $in: Object.values(roleMapping).map(r => r.name) }
         }).session(session);
 
-        // Reset user roles to default
+        // Reset user roles to null since we're removing all roles
         await userModel.updateMany(
           {},
-          { $set: { role: 'user' } }
+          { $unset: { role: 1 } }
         ).session(session);
 
+        logger.info('✅ Reset all user roles');
+
         // Delete migrated resources
-        await resourceModel.deleteMany({
+        const resourceResult = await resourceModel.deleteMany({
           name: { $in: defaultResources.map(r => r.name) }
         }).session(session);
 
-        logger.info('✅ Successfully rolled back role and resource migration');
+        logger.info(`✅ Successfully rolled back migration:
+          ◾ Roles removed
+          ◾ User roles reset
+          ◾ Resources removed: ${resourceResult.deletedCount}`);
       });
     } catch (error) {
       logger.error('❌ Rollback failed:', error);

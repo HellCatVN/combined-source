@@ -8,18 +8,18 @@ import { configHash, getRefreshTokenLife, getRefreshTokenSecret, getTokenLife, g
 import { IUser } from '../../users/interfaces/users.interface';
 import { IRefreshTokens } from '../../auth/interface/refreshToken.interface';
 import { usersContainer } from '../../users';
-import { IPayloadLogin, IPayloadRegister, IUserInfoResponse, IUserRequestIdentity, TokenData } from '../interface/auth.interface';
+import { IPayloadLogin, IPayloadRegister, IUserInfoResponse, IPopulatedUserInfoResponse, IUserRequestIdentity, TokenData, IUserWithPassword } from '../interface/auth.interface';
 import { userStatus } from "../../users/enum/user.enum";
 
 class AuthService {
-  public usersCollection = usersContainer.get<Model<any>>('UsersCollection');
+  public usersCollection = usersContainer.get<Model<IUserWithPassword>>('UsersCollection');
   public refreshTokensCollection = authContainer.get<Model<IRefreshTokens>>('RefreshTokensCollection');
 
   public async login(
     payload: IPayloadLogin,
     userRequestIdentify: IUserRequestIdentity
   ): Promise<{
-    userInfo: IUserInfoResponse;
+    userInfo: IPopulatedUserInfoResponse;
     tokenData: TokenData;
     refreshTokenData: TokenData;
   }> {
@@ -29,7 +29,7 @@ class AuthService {
       throw new HttpException(statusCode, 'Hãy điền đầy đủ thông tin');
     }
 
-    const user: any = await this.usersCollection // Any cause we have custom user models no strict type
+    const user = await this.usersCollection
       .findOne({
         username: payload.username,
         isDeleted: {
@@ -37,9 +37,8 @@ class AuthService {
         }
       })
       .select(['username', 'name', 'email', 'role', 'password', '_id', 'status'])
-      .lean();
-
-    console.log(user);
+      .populate('role')
+      .lean<IUserWithPassword>();
 
     if (!user || !bcrypt.compareSync(payload.password, user.password)) {
       throw new HttpException(statusCode, 'Tài khoản hoặc mật khẩu không chính xác');
@@ -49,7 +48,7 @@ class AuthService {
       throw new HttpException(httpStatusCode.ClientError.Forbidden, 'Tài khoản của bạn đang tạm khoá');
     }
 
-    const userInfo: IUserInfoResponse = {
+    const userInfo: IPopulatedUserInfoResponse = {
       _id: user._id.toString(),
       name: user.name,
       username: user.username,
@@ -125,7 +124,7 @@ class AuthService {
     );
   }
 
-  public createToken(payload: IUserInfoResponse, expiresIn: string, secretKey: string): TokenData {
+  public createToken(payload: IUserInfoResponse | IPopulatedUserInfoResponse, expiresIn: string, secretKey: string): TokenData {
     return { expiresIn, token: sign(payload, secretKey, { expiresIn: parseInt(expiresIn) }) };
   }
 

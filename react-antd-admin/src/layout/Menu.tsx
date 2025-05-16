@@ -1,51 +1,44 @@
 import { MenuDataItem, MenuList } from 'interfaces/menu';
 import type { FC } from 'react';
-
 import { Menu } from 'antd';
+import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
-
+import { useContext } from 'react';
 import { useGlobal } from '@hooks/useGlobalContext';
+import { AbilityContext, Actions } from '../configs/ability';
+import { SPECIAL_RESOURCES, SPECIAL_ACTIONS, SUPERADMIN_ROLE } from '../constants/permissions';
+import { SubjectRawRule } from '@casl/ability';
 import menuData from './menuData';
 
-export const getMenuList = (role: string) => {
-  const routes = menuData.routes;
-  const newMenu = loopRoutes(routes, role);
+export const getMenuList = () => {
+  const routes = menuData.routes.map(route => ({
+    ...route,
+    action: route.action as Actions,
+    children: route.children?.map(child => ({
+      ...child,
+      action: child.action as Actions
+    }))
+  }));
+  const newMenu = loopRoutes(routes);
   return newMenu;
 };
 
-function getMenuItemFromRole(menuItemData: MenuDataItem, userRole: string, parentRoles?: string[]) {
-  // Check if item has roles or inherit from parent
-  const itemRoles = menuItemData.roles || parentRoles;
-
-  if (itemRoles) {
-    if (itemRoles.includes(userRole)) {
-      // If menu item has no explicit roles, inherit from parent
-      if (!menuItemData.roles && parentRoles) {
-        return {
-          ...menuItemData,
-          roles: parentRoles,
-        };
-      }
-      return menuItemData;
-    }
-    return;
-  } else {
-    // No roles specified at all, allow access
-    return menuItemData;
-  }
+function getMenuItem(menuItemData: MenuDataItem): MenuDataItem | null {
+  return menuItemData;
 }
 
-function loopRoutes(routes: any, userRole: string, parentRoles?: string[]) {
+function loopRoutes(routes: MenuDataItem[]): MenuDataItem[] {
   return routes
     .map((route: MenuDataItem) => {
-      const newMenu = getMenuItemFromRole(route, userRole, parentRoles);
+      const newMenu = getMenuItem(route);
       if (newMenu) {
         if (newMenu.children) {
-          // Pass parent roles to children for inheritance
-          const newChild = loopRoutes(newMenu.children, userRole, newMenu.roles);
+          const newChild = loopRoutes(newMenu.children);
           if (newChild && newChild.length > 0) {
-            newMenu.children = newChild;
-            return newMenu;
+            return {
+              ...newMenu,
+              children: newChild
+            };
           }
           return null;
         }
@@ -53,10 +46,10 @@ function loopRoutes(routes: any, userRole: string, parentRoles?: string[]) {
       }
       return null;
     })
-    .filter((route: MenuDataItem) => Boolean(route));
+    .filter((item): item is MenuDataItem => item !== null);
 }
 
-interface MenuProps {
+interface MenuComponentProps {
   menuList: MenuList;
   openKey?: string;
   onChangeOpenKey: (key?: string) => void;
@@ -64,9 +57,8 @@ interface MenuProps {
   onChangeSelectedKey: (key: string) => void;
 }
 
-const MenuComponent: FC<MenuProps> = props => {
+const MenuComponent: FC<MenuComponentProps> = props => {
   const { menuList, openKey, onChangeOpenKey, selectedKey, onChangeSelectedKey } = props;
-
   const { device, updateCollapsed } = useGlobal();
   const navigate = useNavigate();
 
@@ -90,8 +82,55 @@ const MenuComponent: FC<MenuProps> = props => {
 
   const onOpenChange = (keys: string[]) => {
     const key = keys.pop();
-
     onChangeOpenKey(key);
+  };
+
+  const ability = useContext(AbilityContext);
+
+  const checkPermission = (item: MenuDataItem): boolean => {
+    if (!item.action || !item.subject) return true;
+
+    // Check for superadmin role
+    if (ability.can('manage', 'all')) return true;
+
+    // Check for wildcard resource access
+    if (ability.can(item.action, SPECIAL_RESOURCES.ALL) ||
+        ability.can(item.action, SPECIAL_RESOURCES.WILDCARD)) {
+      return true;
+    }
+
+    // Check for manage action access
+    if (ability.can(SPECIAL_ACTIONS.MANAGE, item.subject) ||
+        ability.can(SPECIAL_ACTIONS.ALL, item.subject)) {
+      return true;
+    }
+
+    // Regular permission check
+    return ability.can(item.action, item.subject);
+  };
+
+  const renderMenuChild = (child: MenuDataItem): Required<MenuProps>['items'][number] | null => {
+    if (!checkPermission(child)) return null;
+
+    return {
+      key: child.path,
+      icon: child.icon,
+      label: child.name,
+    };
+  };
+
+  const renderMenuItem = (menu: MenuDataItem): Required<MenuProps>['items'][number] | null => {
+    if (!checkPermission(menu)) return null;
+
+    const children = menu.children
+      ?.map(renderMenuChild)
+      .filter((item): item is Required<MenuProps>['items'][number] => item !== null);
+
+    return {
+      key: menu.path,
+      label: getTitle(menu),
+      children: children && children.length > 0 ? children : undefined,
+    };
   };
 
   return (
@@ -102,23 +141,8 @@ const MenuComponent: FC<MenuProps> = props => {
       onOpenChange={onOpenChange}
       onSelect={k => onMenuClick(k.key)}
       className="layout-page-sider-menu text-2"
-      items={menuList.map(menu => {
-        return menu.children
-          ? {
-              key: menu.path,
-              label: getTitle(menu),
-              children: menu.children.map(child => ({
-                icon: child.icon,
-                key: child.path,
-                label: child.name,
-              })),
-            }
-          : {
-              key: menu.path,
-              label: getTitle(menu),
-            };
-      })}
-    ></Menu>
+      items={menuList.map(renderMenuItem).filter((item): item is Required<MenuProps>['items'][number] => item !== null)}
+    />
   );
 };
 

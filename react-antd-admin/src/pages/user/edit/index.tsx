@@ -2,7 +2,7 @@ import { App, Button, Card, Col, Form, Input, Row, Select, Space, Switch } from 
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { USER_ROLES, USER_STATUS } from '@constants';
+import { USER_STATUS } from '@constants';
 import { useGetUser, useUpdateUser } from '@hooks/react-query/useUsers';
 import useForm from '@hooks/useForm';
 import { getError } from '@utils';
@@ -135,7 +135,7 @@ const EditUser = () => {
 
             {columns.map(column => column.render())}
 
-            <Form.Item {...inputField} label="Role" name="role">
+            {/* <Form.Item {...inputField} label="Role" name="role">
               <Select
                 size="large"
                 style={{ textTransform: 'capitalize' }}
@@ -145,7 +145,7 @@ const EditUser = () => {
                   value: role,
                 }))}
               />
-            </Form.Item>
+            </Form.Item> */}
 
             <Form.Item {...inputField} name="status" label="User status" layout="horizontal">
               <Switch

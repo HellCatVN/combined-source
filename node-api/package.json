@@ -12,8 +12,8 @@
     "build": "swc src -d dist --source-maps --copy-files",
     "build:tsc": "tsc && tsc-alias",
     "deploy:prod": "pm2 start ecosystem.config.js && pm2 logs node-api",
-    "migrate:up": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/database/migrate/index.ts up",
-    "migrate:down": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/database/migrate/index.ts down",
+    "migrate:up": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/database/migration/index.ts up",
+    "migrate:down": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/database/migration/index.ts down",
     "migrate": "yarn migrate:up"
   },
   "dependencies": {

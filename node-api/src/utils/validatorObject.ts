@@ -2,7 +2,7 @@ import { z, ZodObject, ZodRawShape } from "zod";
 import {
   ISuccessResponse,
   IPagination,
-} from "../interfaces/response.interface";
+} from "../types/interfaces/response.interface";
 
 export const validatorObject = {
   successResponse: async <T, X extends ZodObject<ZodRawShape>>(

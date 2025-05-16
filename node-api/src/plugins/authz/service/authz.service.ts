@@ -1,9 +1,9 @@
-import { Model } from 'mongoose';
+import { Model, model } from 'mongoose';
 import { HttpException } from '@exceptions/HttpException';
 import { httpStatusCode } from '@constants/httpStatusCode';
-import { authzContainer } from '../authzContainer';
-import { usersContainer } from '../../users';
-import UserService from '../../users/service/user.service';
+import { authzRolesSchema } from '../schema/AuthzRoles';
+import { authzResourcesSchema } from '../schema/AuthzResources';
+import { authzEndpointConfigSchema } from '../schema/AuthzEndpointConfig';
 import {
   CreateRoleDto, UpdateRoleDto, CheckPermissionParams,
   CreateResourceDto, UpdateResourceDto,
@@ -13,10 +13,9 @@ import {
 import { SPECIAL_RESOURCES, SPECIAL_ACTIONS, SUPERADMIN_ROLE } from '../constants';
 
 class AuthzService {
-  public roleModel = authzContainer.get<Model<Role>>('AuthzRolesCollection');
-  public resourceModel = authzContainer.get<Model<IResource>>('AuthzResourcesCollection');
-  public endpointConfigModel = authzContainer.get<Model<IEndpointConfig>>('AuthzEndpointConfigCollection');
-  public userService = usersContainer.get<UserService>('UserService');
+  private roleModel = model<Role>('AuthzRoles', authzRolesSchema);
+  private resourceModel = model<IResource>('AuthzResources', authzResourcesSchema);
+  private endpointConfigModel = model<IEndpointConfig>('AuthzEndpointConfig', authzEndpointConfigSchema);
 
   public async createRole(roleData: CreateRoleDto) {
     if (!roleData.name) {
@@ -172,11 +171,6 @@ class AuthzService {
 
     // Check for superadmin role
     if (userRole.name === SUPERADMIN_ROLE) {
-      return true;
-    }
-
-    // If user has admin role, grant all permissions
-    if (userRole.name === 'admin') {
       return true;
     }
 

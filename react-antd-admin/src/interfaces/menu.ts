@@ -1,28 +1,13 @@
-interface MenuItem {
-  /** menu item code */
-  code: string;
-  /** menu labels */
-  name: any;
-  /** icon name
-   *
-   * Sub-submenus do not need icons
-   */
-  icon?: string;
-  /** menu route */
+import { ReactNode } from 'react';
+import { Actions, Subjects } from '../configs/ability';
+
+export interface MenuDataItem {
   path: string;
-  /** submenus */
-  children?: MenuItem[];
+  name: string;
+  icon?: ReactNode;
+  children?: MenuDataItem[];
+  action?: Actions;
+  subject?: Subjects;
 }
 
-export type MenuChild = Omit<MenuItem, 'children'>;
-
-export type MenuList = MenuItem[];
-
-export type MenuDataList = MenuItemData[];
-
-export type MenuDataItem = MenuItemData;
-
-export interface MenuItemData extends MenuItem {
-  /** user roles */
-  roles?: string[];
-}
+export type MenuList = MenuDataItem[];

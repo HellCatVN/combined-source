@@ -1,5 +1,18 @@
 import { Request } from 'express';
 import { IUserPermission } from '../../users/interfaces/users.interface';
+import { Role } from '../../authz/interface/authz.interface';
+import { userStatus } from "../../users/enum/user.enum";
+import { IUser } from "../../users/interfaces/users.interface";
+
+/**
+ * Represents a user with password and specific role type for authentication
+ * Extends the base IUser interface with strict role typing
+ */
+export interface IUserWithPassword extends Omit<IUser, 'status'> {
+  password: string;
+  status: userStatus;
+  role: Role;
+}
 
 export interface DataStoredInToken {
   _id: string;
@@ -20,8 +33,12 @@ export interface IUserInfoResponse {
   _id: string;
   name: string;
   email: string;
-  role: string;
+  role: string | Role;
   username: string;
+}
+
+export interface IPopulatedUserInfoResponse extends Omit<IUserInfoResponse, 'role'> {
+  role: Role;
 }
 
 export interface IUserRequestIdentity {

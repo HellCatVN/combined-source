@@ -17,7 +17,7 @@ import queryString from 'query-string';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import backendSearchFilterBuilder from '@components/table/backendSearchFilterBuilder';
-import { USER_ROLES, USER_STATUS } from '@constants';
+import { USER_STATUS } from '@constants';
 import { useDeleteUser, useGetUsers } from '@hooks/react-query/useUsers';
 import { IClientUser } from '@interfaces';
 import { getError } from '@utils';
@@ -170,7 +170,7 @@ const UserList = () => {
           <Col xs={24} md={12}>
             <Row justify="end" gutter={[16, 16]}>
               <Col xs={12} md={12} lg={10} xl={8}>
-                <Select
+                {/* <Select
                   allowClear
                   size="large"
                   className="w-100"
@@ -184,7 +184,7 @@ const UserList = () => {
                     value: role,
                   }))}
                   onChange={value => handleOnChangeFilter('role', value)}
-                />
+                /> */}
               </Col>
               <Col xs={12} md={12} lg={10} xl={8}>
                 <Select

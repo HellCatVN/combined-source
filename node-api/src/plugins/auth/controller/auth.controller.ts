@@ -49,7 +49,13 @@ class AuthController {
   public register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const newUser = await this.authService.register(req.body);
-      const payloadUser = { _id: newUser._id, name: newUser.name, username: newUser.username, email: newUser.email, role: newUser.role };
+      const payloadUser: IUserInfoResponse = {
+        _id: newUser._id.toString(),
+        name: newUser.name,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role.toString()  // Convert ObjectId to string for token
+      };
       const token = createToken(payloadUser, getTokenLife(), getTokenSecret());
 
       const response = {

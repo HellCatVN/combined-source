@@ -5,6 +5,8 @@
   "type": "module",
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
+    "@casl/ability": "^6.7.3",
+    "@casl/react": "^5.0.0",
     "@lottiefiles/react-lottie-player": "^3.6.0",
     "@reduxjs/toolkit": "^2.5.0",
     "@types/jest": "^27.5.2",

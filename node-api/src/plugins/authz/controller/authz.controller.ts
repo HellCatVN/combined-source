@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { Container } from 'inversify';
-import { AuthzService } from '../interface/authz.interface';
+import AuthzService from '../service/authz.service';
 import { IUserDocument } from '../../users/interfaces/users.interface';
 
 export class AuthzController {
   private authzService: AuthzService;
 
-  constructor(container: Container) {
-    this.authzService = container.get<AuthzService>('AuthzService');
+  constructor() {
+    this.authzService = new AuthzService();
   }
 
   public getPermissions = async (req: Request, res: Response, next: NextFunction) => {
