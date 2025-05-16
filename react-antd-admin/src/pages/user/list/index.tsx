@@ -111,6 +111,9 @@ const UserList = () => {
       sorter: {
         compare: (a, b) => a.name.localeCompare(b.name),
       },
+      render: value => {
+        return <p>{value.name}</p>;
+      },
     },
     {
       title: 'Status',
@@ -170,6 +173,7 @@ const UserList = () => {
           <Col xs={24} md={12}>
             <Row justify="end" gutter={[16, 16]}>
               <Col xs={12} md={12} lg={10} xl={8}>
+                {/* TODO: Should be select from backend */}
                 {/* <Select
                   allowClear
                   size="large"

@@ -1,6 +1,4 @@
-import mongoose from "mongoose";
 import { Router } from "express";
-import { roleMiddleware } from "../auth/middleware/role.middleware";
 import {
   ICustomerValidatorUserRules,
 } from "./interfaces/users.interface";
@@ -8,7 +6,7 @@ import UsersController from "./controller/user.controller";
 import { authMiddleware } from "../auth/middleware/auth.middleware";
 import { validateDataBySchemaMiddleware } from "@middlewares/validation.middleware";
 import { originUpdateUserPayloadRules } from "./rules/payload.rule";
-import { userRoleManager } from "./utils/userRole";
+import { authzMiddleware } from "../authz/middleware/authz.middleware";
 
 export function RouteCreator(
   path: string,
@@ -16,36 +14,43 @@ export function RouteCreator(
   customValidatorRules?: ICustomerValidatorUserRules,
 ) {
   const userController = new UsersController();
-  const userRoles = userRoleManager.getUserRoles
 
+  // List users
   router.get(
     `${path}`,
     authMiddleware as any,
-    roleMiddleware([userRoles.admin]) as any,
+    authzMiddleware('users', 'list'),
     userController.getUsers
   );
+
+  // Bootstrap data (no permission required)
   router.get(
     `${path}/bootstrap`,
     authMiddleware as any,
     userController.getUserBootStrapData as any
   );
+
+  // Get user by ID
   router.get(
     `${path}/:username`,
     authMiddleware as any,
-    roleMiddleware([userRoles.admin]) as any,
+    authzMiddleware('users', 'read'),
     userController.getUserById as any
   );
+
+  // Delete user
   router.delete(
     `${path}/:username`,
     authMiddleware as any,
-    roleMiddleware([userRoles.admin]) as any,
+    authzMiddleware('users', 'delete'),
     userController.deleteUser as any
   );
 
+  // Update user
   router.patch(
     `${path}/:username`,
     authMiddleware as any,
-    roleMiddleware([userRoles.admin]) as any,
+    authzMiddleware('users', 'update'),
     validateDataBySchemaMiddleware(
       customValidatorRules
         ? customValidatorRules.customUserPayloadRules

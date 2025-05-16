@@ -28,6 +28,7 @@ export const validationMiddleware = function (validateObjects: ValidateObject[])
     }
     const response = await Promise.all(worker);
     if (response.some(res => res === true)) {
+      console.log('Validation passed');
       return next();
     } else {
       const response = {

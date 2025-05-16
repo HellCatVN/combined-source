@@ -1,61 +1,62 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpException } from '../../../exceptions/HttpException';
-import { IUserDocument } from '../../users/interfaces/users.interface';
-import { ResolvedPermission } from '../interface/authz.interface';
-import { authzEndpointConfigSchema } from '../schema/AuthzEndpointConfig';
-import mongoose from 'mongoose';
-import AuthzService from '../service/authz.service';
+import { Response, NextFunction } from "express";
+import { authzContainer } from "../authzContainer";
+import { Model } from "mongoose";
+import { httpStatusCode } from "@constants/httpStatusCode";
+import { HttpException } from "@exceptions/HttpException";
+import AuthzService from "../service/authz.service";
+import {
+  IEndpointConfig,
+  CheckPermissionParams,
+} from "../interface/authz.interface";
+import {
+  RequestWithUser,
+  IUserInfoResponse,
+} from "@plugins/auth/interface/auth.interface";
 
-const EndpointConfigModel = mongoose.model('EndpointConfig', authzEndpointConfigSchema);
 const authzService = new AuthzService();
+const EndpointConfigModel = authzContainer.get<Model<IEndpointConfig>>("AuthzEndpointConfigCollection");
 
-export interface RequestWithUser extends Request {
-  user: IUserDocument;
+interface PermissionConfig {
+  resource: string;
+  action: string;
 }
 
-/**
- * Check if user has required permission for a resource
- */
-export const checkPermission = (resource?: string, action?: string) => {
+// Helper functions
+const assertUserForPermissionCheck = (
+  user: IUserInfoResponse
+): CheckPermissionParams["user"] => {
+  return user as unknown as CheckPermissionParams["user"];
+};
+
+const getEndpointConfig = async (path: string, method: string): Promise<IEndpointConfig | null> => {
+  return await EndpointConfigModel.findOne({
+    path,
+    method: method.toLowerCase(),
+  });
+};
+
+const checkSinglePermission = async (
+  user: IUserInfoResponse,
+  config: IEndpointConfig | null,
+  resource?: string,
+  action?: string
+): Promise<boolean> => {
+  return await authzService.checkPermission({
+    user: assertUserForPermissionCheck(user),
+    resource: config?.resource || resource,
+    action: config?.action || action,
+  });
+};
+
+// Middleware functions
+export const authzMiddleware = (resource?: string, action?: string) => {
   return async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      const endpoint = await EndpointConfigModel.findOne({
-        path: req.path,
-        method: req.method,
-        isActive: true
-      });
-
-      let resolvedPermission: ResolvedPermission;
-
-      if (endpoint) {
-        resolvedPermission = {
-          resource: endpoint.resource,
-          action: endpoint.action,
-          source: 'database'
-        };
-      } else if (resource && action) {
-        resolvedPermission = {
-          resource,
-          action,
-          source: 'params'
-        };
-      } else {
-        return next();
-      }
-
-      const hasPermission = await authzService.checkPermission({
-        user: req.user,
-        resource: resolvedPermission.resource,
-        action: resolvedPermission.action
-      });
-
+      const config = await getEndpointConfig(req.path, req.method);
+      const hasPermission = await checkSinglePermission(req.user, config, resource, action);
       if (!hasPermission) {
-        throw new HttpException(
-          403,
-          `Permission denied for ${resolvedPermission.action} on ${resolvedPermission.resource}`
-        );
+        return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
       }
-
       next();
     } catch (error) {
       next(error);
@@ -63,176 +64,46 @@ export const checkPermission = (resource?: string, action?: string) => {
   };
 };
 
-/**
- * Check if user has any of the required permissions
- */
-export const checkAnyPermission = (permissions: Array<{ resource?: string; action?: string }>) => {
+export const authzAnyMiddleware = (permissions: PermissionConfig[]) => {
   return async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      const endpoint = await EndpointConfigModel.findOne({
-        path: req.path,
-        method: req.method,
-        isActive: true
-      });
-
-      if (endpoint) {
-        const hasPermission = await authzService.checkPermission({
-          user: req.user,
-          resource: endpoint.resource,
-          action: endpoint.action
-        });
-
-        if (hasPermission) {
-          return next();
-        }
-      }
-
-      for (const { resource, action } of permissions) {
-        if (resource && action) {
-          const hasPermission = await authzService.checkPermission({
-            user: req.user,
-            resource,
-            action
-          });
-
-          if (hasPermission) {
-            return next();
-          }
-        }
-      }
-
-      if (permissions.length === 0 && !endpoint) {
-        return next();
-      }
-
-      throw new HttpException(403, 'Permission denied - requires any of specified permissions');
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-/**
- * Check if user has all required permissions
- */
-export const checkAllPermissions = (permissions: Array<{ resource?: string; action?: string }>) => {
-  return async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    try {
-      const endpoint = await EndpointConfigModel.findOne({
-        path: req.path,
-        method: req.method,
-        isActive: true
-      });
-
-      if (endpoint) {
-        const hasPermission = await authzService.checkPermission({
-          user: req.user,
-          resource: endpoint.resource,
-          action: endpoint.action
-        });
-
-        if (!hasPermission) {
-          throw new HttpException(403, `Permission denied for ${endpoint.action} on ${endpoint.resource}`);
-        }
-      }
-
-      for (const { resource, action } of permissions) {
-        if (resource && action) {
-          const hasPermission = await authzService.checkPermission({
-            user: req.user,
-            resource,
-            action
-          });
-
-          if (!hasPermission) {
-            throw new HttpException(403, `Permission denied for ${action} on ${resource}`);
-          }
-        }
-      }
-
-      if (!endpoint && permissions.every(p => !p.resource || !p.action)) {
-        return next();
-      }
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-/**
- * Middleware that automatically checks permissions based on endpoint configuration
- */
-export const dynamicPermissionCheck = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  try {
-    const endpoint = await EndpointConfigModel.findOne({
-      path: req.path,
-      method: req.method,
-      isActive: true
-    });
-
-    if (!endpoint) {
-      return next();
-    }
-
-    const hasPermission = await authzService.checkPermission({
-      user: req.user,
-      resource: endpoint.resource,
-      action: endpoint.action
-    });
-
-    if (!hasPermission) {
-      throw new HttpException(
-        403,
-        `Permission denied - requires ${endpoint.action} permission on ${endpoint.resource}`
-      );
-    }
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Check if user has required permission with path pattern matching
- */
-export const checkEndpointPermission = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  try {
-    const endpoints = await EndpointConfigModel.find({
-      method: req.method,
-      isActive: true
-    });
-
-    const matchingEndpoint = endpoints.find(endpoint => {
-      const pattern = endpoint.path
-        .replace(/:[^\s/]+/g, '[^/]+')
-        .replace(/\*/g, '.*');
+      const config = await getEndpointConfig(req.path, req.method);
       
-      const regex = new RegExp(`^${pattern}$`);
-      return regex.test(req.path);
-    });
-
-    if (!matchingEndpoint) {
-      return next();
-    }
-
-    const hasPermission = await authzService.checkPermission({
-      user: req.user,
-      resource: matchingEndpoint.resource,
-      action: matchingEndpoint.action
-    });
-
-    if (!hasPermission) {
-      throw new HttpException(
-        403,
-        `Permission denied - requires ${matchingEndpoint.action} permission on ${matchingEndpoint.resource}`
+      const checkResults = await Promise.all(
+        permissions.map(permission =>
+          checkSinglePermission(req.user, config, permission.resource, permission.action)
+        )
       );
-    }
 
-    next();
-  } catch (error) {
-    next(error);
-  }
+      if (!checkResults.some(result => result === true)) {
+        return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+export const authzMultiMiddleware = (permissions: PermissionConfig[]) => {
+  return async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const config = await getEndpointConfig(req.path, req.method);
+      
+      const checkResults = await Promise.all(
+        permissions.map(permission =>
+          checkSinglePermission(req.user, config, permission.resource, permission.action)
+        )
+      );
+
+      if (!checkResults.every(result => result === true)) {
+        return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 };

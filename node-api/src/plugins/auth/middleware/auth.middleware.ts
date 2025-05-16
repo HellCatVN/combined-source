@@ -13,7 +13,8 @@ import {
 import {
   IRefreshTokenCheck,
   ITokenCheck,
-  IUserInfoResponse,
+  IPopulatedUserInfoResponse,
+  IUserWithPassword,
   RequestWithUser,
   TokenData,
 } from "../interface/auth.interface";
@@ -22,7 +23,6 @@ import { HttpException } from "@exceptions/HttpException";
 import { httpStatusCode } from "@constants/httpStatusCode";
 import { IRefreshTokens } from "../interface/refreshToken.interface";
 import { usersContainer } from "../../users/usersContainer";
-import { IUser } from '../../users/interfaces/users.interface';
 import { userStatus } from "../../users";
 
 const authMiddleware = async (
@@ -64,8 +64,8 @@ const authMiddleware = async (
       );
     }
   } catch (error: any) {
-    if (error.name == "TokenExpiredError") {
-      const result = await checkRefreshToken(req.cookies["refresh_token"]);
+    if (error.name === "TokenExpiredError") {
+      const result = await checkRefreshToken(req.cookies["refreshToken"]);
       if (result === false) {
         return next(
           new HttpException(
@@ -76,17 +76,23 @@ const authMiddleware = async (
         );
       }
       req.user = result.payload;
-      next();
-      // return {
-      //   token: result.token,
-      //   refreshToken: result.refreshToken,
-      // };
+      return next();
     }
 
-    next(
+    if (error.name === "JsonWebTokenError") {
+      return next(
+        new HttpException(
+          httpStatusCode.ClientError.Unauthorized,
+          "Invalid authentication token",
+          true
+        )
+      );
+    }
+
+    return next(
       new HttpException(
         httpStatusCode.ClientError.Unauthorized,
-        "User session is ended due to token is expired",
+        "Authentication failed",
         true
       )
     );
@@ -125,29 +131,35 @@ async function checkRefreshToken(
       return false;
     }
 
-    const user = (await usersCollection
-    .findOne({
-      username: decodedUser.username,
-      isDeleted: {
-        $ne : true
-      }
-    }).select(['username', 'name', 'email', 'role', 'password', '_id', 'status']).lean()) as IUser | null;
+    const userDoc = await usersCollection
+      .findOne({
+        username: decodedUser.username,
+        isDeleted: {
+          $ne: true
+        }
+      })
+      .select(['username', 'name', 'email', 'role', 'password', '_id', 'status'])
+      .populate('role')
+      .lean<IUserWithPassword>();
 
-    if (!user) {
+    if (!userDoc) {
       throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Tài khoản hoặc mật khẩu không chính xác');
     }
 
-    if(user.status === userStatus.lock) {
+    if (userDoc.status === userStatus.lock) {
       throw new HttpException(httpStatusCode.ClientError.Forbidden, 'Tài khoản của bạn đang tạm khoá');
     }
 
+    if (!userDoc) {
+      throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Tài khoản hoặc mật khẩu không chính xác');
+    }
 
-    const payload: IUserInfoResponse = {
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-      _id: user._id,
+    const payload: IPopulatedUserInfoResponse = {
+      name: userDoc.name,
+      email: userDoc.email,
+      username: userDoc.username,
+      role: userDoc.role,
+      _id: userDoc._id.toString(),
     };
 
     if (
@@ -236,15 +248,20 @@ const nonRequireLoginMiddleware = async (
       next();
     }
   } catch (error: any) {
-    if (error.name == "TokenExpiredError") {
-      const result = await checkRefreshToken(req.cookies["refresh_token"]);
+    if (error.name === "TokenExpiredError") {
+      const result = await checkRefreshToken(req.cookies["refreshToken"]);
       if (result === false) {
         return next();
       }
       req.user = result.payload;
+      return next();
     }
 
-    next();
+    if (error.name === "JsonWebTokenError") {
+      return next();
+    }
+
+    return next();
   }
 };
 
