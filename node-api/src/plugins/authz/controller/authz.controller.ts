@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import AuthzService from '../service/authz.service';
 import { IUserDocument } from '../../users/interfaces/users.interface';
+import { RequestWithUser } from '@plugins/auth/interface/auth.interface';
+import { Role } from '../interface/authz.interface';
 
 export class AuthzController {
   private authzService: AuthzService;
@@ -37,11 +39,22 @@ export class AuthzController {
     }
   };
 
-  public updateRole = async (req: Request, res: Response, next: NextFunction) => {
+  public getRoleById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
+      const role = await this.authzService.getRoleById(id);
+      res.status(200).json({ data: role, message: 'getRole' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateRole = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.roleId;
       const roleData = req.body;
-      const updatedRole = await this.authzService.updateRole(id, roleData);
+      const userRole = req.user.role;
+      const updatedRole = await this.authzService.updateRole(id, roleData, userRole);
       res.status(200).json({ data: updatedRole, message: 'updated' });
     } catch (error) {
       next(error);
@@ -77,6 +90,16 @@ export class AuthzController {
     try {
       const resources = await this.authzService.getResources();
       res.status(200).json({ data: resources, message: 'getResources' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getResourceById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      const resource = await this.authzService.getResourceById(id);
+      res.status(200).json({ data: resource, message: 'getResource' });
     } catch (error) {
       next(error);
     }
@@ -118,6 +141,16 @@ export class AuthzController {
     try {
       const configs = await this.authzService.getEndpointConfigs();
       res.status(200).json({ data: configs, message: 'getEndpointConfigs' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getEndpointConfigById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      const config = await this.authzService.getEndpointConfigById(id);
+      res.status(200).json({ data: config, message: 'getEndpointConfig' });
     } catch (error) {
       next(error);
     }

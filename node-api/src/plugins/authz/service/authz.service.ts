@@ -1,9 +1,6 @@
-import { Model, model } from 'mongoose';
+import { Model } from 'mongoose';
 import { HttpException } from '@exceptions/HttpException';
 import { httpStatusCode } from '@constants/httpStatusCode';
-import { authzRolesSchema } from '../schema/AuthzRoles';
-import { authzResourcesSchema } from '../schema/AuthzResources';
-import { authzEndpointConfigSchema } from '../schema/AuthzEndpointConfig';
 import {
   CreateRoleDto, UpdateRoleDto, CheckPermissionParams,
   CreateResourceDto, UpdateResourceDto,
@@ -11,11 +8,12 @@ import {
   Permission, Role, IResource, IEndpointConfig
 } from '../interface/authz.interface';
 import { SPECIAL_RESOURCES, SPECIAL_ACTIONS, SUPERADMIN_ROLE } from '../constants';
+import { authzContainer } from '../authzContainer';
 
 class AuthzService {
-  private roleModel = model<Role>('AuthzRoles', authzRolesSchema);
-  private resourceModel = model<IResource>('AuthzResources', authzResourcesSchema);
-  private endpointConfigModel = model<IEndpointConfig>('AuthzEndpointConfig', authzEndpointConfigSchema);
+  private roleModel = authzContainer.get<Model<Role>>('AuthzRolesCollection');
+  private resourceModel = authzContainer.get<Model<IResource>>('AuthzResourcesCollection');
+  private endpointConfigModel = authzContainer.get<Model<IEndpointConfig>>('AuthzEndpointConfigCollection');
 
   public async createRole(roleData: CreateRoleDto) {
     if (!roleData.name) {
@@ -71,13 +69,22 @@ class AuthzService {
     return await this.roleModel.find();
   }
 
-  public async updateRole(id: string, roleData: UpdateRoleDto) {
+  public async getRoleById(id: string) {
+    const role = await this.roleModel.findById(id);
+    if (!role) {
+      throw new HttpException(httpStatusCode.ClientError.NotFound, 'Role not found');
+    }
+    return role;
+  }
+
+  public async updateRole(id: string, roleData: UpdateRoleDto, userRole?: Role) {
     const role = await this.roleModel.findById(id);
     if (!role) {
       throw new HttpException(httpStatusCode.ClientError.NotFound, 'Role not found');
     }
 
-    if (role.isSystem) {
+    // Only block system role modification if user is not superadmin
+    if (role.isSystem && (!userRole || userRole.name !== SUPERADMIN_ROLE)) {
       throw new HttpException(httpStatusCode.ClientError.Forbidden, 'System roles cannot be modified');
     }
 
@@ -217,6 +224,14 @@ class AuthzService {
     return await this.resourceModel.find();
   }
 
+  public async getResourceById(id: string) {
+    const resource = await this.resourceModel.findById(id);
+    if (!resource) {
+      throw new HttpException(httpStatusCode.ClientError.NotFound, 'Resource not found');
+    }
+    return resource;
+  }
+
   public async updateResource(id: string, resourceData: UpdateResourceDto) {
     const resource = await this.resourceModel.findById(id);
     if (!resource) {
@@ -258,6 +273,14 @@ class AuthzService {
 
   public async getEndpointConfigs() {
     return await this.endpointConfigModel.find();
+  }
+
+  public async getEndpointConfigById(id: string) {
+    const config = await this.endpointConfigModel.findById(id);
+    if (!config) {
+      throw new HttpException(httpStatusCode.ClientError.NotFound, 'Endpoint config not found');
+    }
+    return config;
   }
 
   public async updateEndpointConfig(id: string, configData: UpdateEndpointConfigDto) {

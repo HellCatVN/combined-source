@@ -33,7 +33,7 @@ export interface IUserInfoResponse {
   _id: string;
   name: string;
   email: string;
-  role: string | Role;
+  role: Role;
   username: string;
 }
 

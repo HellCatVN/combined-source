@@ -6,7 +6,8 @@ import {
   UnorderedListOutlined,
   UserOutlined,
   AppstoreOutlined,
-  UsbFilled
+  UsbFilled,
+  LockOutlined
 } from '@ant-design/icons';
 import { customMenuData } from '@bm/configs';
 
@@ -47,6 +48,36 @@ const menuData = {
           name: 'Source List',
           icon: <UnorderedListOutlined />,
           subject: 'plugins',
+          action: 'list',
+        },
+      ],
+    },
+    {
+      path: '/authz',
+      name: 'Authorization',
+      icon: <LockOutlined />,
+      subject: 'authz',
+      action: 'read',
+      children: [
+        {
+          path: '/authz/role/list',
+          name: 'Roles',
+          icon: <UnorderedListOutlined />,
+          subject: 'role',
+          action: 'list',
+        },
+        {
+          path: '/authz/resource/list',
+          name: 'Resources',
+          icon: <UnorderedListOutlined />,
+          subject: 'resource',
+          action: 'list',
+        },
+        {
+          path: '/authz/endpoint/list',
+          name: 'Endpoints',
+          icon: <UnorderedListOutlined />,
+          subject: 'endpoint',
           action: 'list',
         },
       ],

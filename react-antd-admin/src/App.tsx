@@ -21,6 +21,17 @@ const LogList = lazy(() => import('@pages/log/list'));
 const AccountPage = lazy(() => import('@pages/account'));
 const PluginList = lazy(() => import('@pages/plugins/list'));
 
+// RBAC Pages
+const RoleList = lazy(() => import('@pages/authz/role/list'));
+const RoleEdit = lazy(() => import('@pages/authz/role/edit'));
+const RoleCreate = lazy(() => import('@pages/authz/role/create'));
+const ResourceList = lazy(() => import('@pages/authz/resource/list'));
+const ResourceEdit = lazy(() => import('@pages/authz/resource/edit'));
+const ResourceCreate = lazy(() => import('@pages/authz/resource/create'));
+const EndpointList = lazy(() => import('@pages/authz/endpoint/list'));
+const EndpointEdit = lazy(() => import('@pages/authz/endpoint/edit'));
+const EndpointCreate = lazy(() => import('@pages/authz/endpoint/create'));
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -82,6 +93,81 @@ function App() {
                         </Suspense>
                       }
                     />
+
+                    {/* RBAC Routes */}
+                    <Route
+                      path="authz/role/list"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <RoleList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/role/edit/:id"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <RoleEdit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/role/create"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <RoleCreate />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/resource/list"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <ResourceList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/resource/edit/:id"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <ResourceEdit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/resource/create"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <ResourceCreate />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/endpoint/list"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <EndpointList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/endpoint/edit/:id"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <EndpointEdit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="authz/endpoint/create"
+                      element={
+                        <Suspense fallback={<Skeleton />}>
+                          <EndpointCreate />
+                        </Suspense>
+                      }
+                    />
+                    
                     <Route path="/welcome" element={<Welcome />} />
                   </Route>
                   <Route path="/login" element={<Login />} />

@@ -25,6 +25,13 @@ export function RouteCreator(path: string, router: Router) {
     authzController.getRoles
   );
 
+  router.get(
+    `${path}roles/:id`,
+    authMiddleware as any,
+    authzMiddleware('roles', 'read') as any,
+    authzController.getRoleById
+  );
+
   router.post(
     `${path}roles`,
     authMiddleware as any,
@@ -53,6 +60,13 @@ export function RouteCreator(path: string, router: Router) {
     authzController.getResources
   );
 
+  router.get(
+    `${path}resources/:id`,
+    authMiddleware as any,
+    authzMiddleware('resources', 'read') as any,
+    authzController.getResourceById
+  );
+
   router.post(
     `${path}resources`,
     authMiddleware as any,
@@ -79,6 +93,13 @@ export function RouteCreator(path: string, router: Router) {
     authMiddleware as any,
     authzMiddleware('endpoints', 'read') as any,
     authzController.getEndpointConfigs
+  );
+
+  router.get(
+    `${path}endpoints/:id`,
+    authMiddleware as any,
+    authzMiddleware('endpoints', 'read') as any,
+    authzController.getEndpointConfigById
   );
 
   router.post(
