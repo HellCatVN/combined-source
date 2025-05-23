@@ -14,8 +14,11 @@ export interface IResource extends Document {
 export interface IEndpointConfig extends Document {
   path: string;
   method: string;
-  resource: string;
-  action: string;
+  authType: 'any' | 'all';
+  permissions: Array<{
+    resource: string;
+    action: string;
+  }>;
   description?: string;
   isActive: boolean;
   createdAt: Date;
@@ -79,16 +82,22 @@ export interface UpdateResourceDto {
 export interface CreateEndpointConfigDto {
   path: string;
   method: string;
-  resource: string;
-  action: string;
+  authType: 'any' | 'all';
+  permissions: Array<{
+    resource: string;
+    action: string;
+  }>;
   description?: string;
 }
 
 export interface UpdateEndpointConfigDto {
   path?: string;
   method?: string;
-  resource?: string;
-  action?: string;
+  authType?: 'any' | 'all';
+  permissions?: Array<{
+    resource: string;
+    action: string;
+  }>;
   description?: string;
   isActive?: boolean;
 }

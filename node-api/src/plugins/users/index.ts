@@ -19,7 +19,7 @@ export function RouteCreator(
   router.get(
     `${path}`,
     authMiddleware as any,
-    authzMiddleware('users', 'list'),
+    authzMiddleware([{ resource: 'users', action: 'list' }]),
     userController.getUsers
   );
 
@@ -34,7 +34,7 @@ export function RouteCreator(
   router.get(
     `${path}/:username`,
     authMiddleware as any,
-    authzMiddleware('users', 'read'),
+    authzMiddleware([{ resource: 'users', action: 'read' }]),
     userController.getUserById as any
   );
 
@@ -42,7 +42,7 @@ export function RouteCreator(
   router.delete(
     `${path}/:username`,
     authMiddleware as any,
-    authzMiddleware('users', 'delete'),
+    authzMiddleware([{ resource: 'users', action: 'delete' }]),
     userController.deleteUser as any
   );
 
@@ -50,7 +50,7 @@ export function RouteCreator(
   router.patch(
     `${path}/:username`,
     authMiddleware as any,
-    authzMiddleware('users', 'update'),
+    authzMiddleware([{ resource: 'users', action: 'update' }]),
     validateDataBySchemaMiddleware(
       customValidatorRules
         ? customValidatorRules.customUserPayloadRules

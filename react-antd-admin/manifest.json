@@ -173,6 +173,50 @@
       "version": "0.0.1"
     },
     {
+      "filePath": "src/api/authz/index.ts",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/endpoint/create/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/endpoint/edit/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/endpoint/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/resource/components/ResourceForm.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/resource/create/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/resource/edit/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/resource/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/role/create/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/role/edit/index.tsx",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "src/pages/authz/role/list/index.tsx",
+      "version": "0.0.1"
+    },
+    {
       "filePath": "src/pages/Welcome.tsx",
       "version": "0.0.1"
     },
@@ -242,6 +286,10 @@
     },
     {
       "filePath": "src/styles/styles.css",
+      "version": "0.0.1"
+    },
+    {
+      "filePath": "scripts/check-untracked.js",
       "version": "0.0.1"
     }
   ],

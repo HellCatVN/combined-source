@@ -12,14 +12,22 @@ export const authzEndpointConfigSchema = new Schema<IEndpointConfig>(
       required: true,
       enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     },
-    resource: {
+    authType: {
       type: String,
       required: true,
+      enum: ['any', 'all'],
+      default: 'all'
     },
-    action: {
-      type: String,
-      required: true,
-    },
+    permissions: [{
+      resource: {
+        type: String,
+        required: true
+      },
+      action: {
+        type: String,
+        required: true
+      }
+    }],
     description: {
       type: String,
       required: false,
@@ -37,4 +45,4 @@ export const authzEndpointConfigSchema = new Schema<IEndpointConfig>(
 
 // Create compound index for unique endpoint configs
 authzEndpointConfigSchema.index({ path: 1, method: 1 }, { unique: true });
-authzEndpointConfigSchema.index({ resource: 1, action: 1 });
+authzEndpointConfigSchema.index({ 'permissions.resource': 1, 'permissions.action': 1 });

@@ -142,8 +142,22 @@ export class SourceService {
         const allFileContents = [];
         for (const batch of batches) {
           const fileContents = await sourceApiService.getFileContents(sourceId, batch);
+          for (const fileContent of fileContents) {
+            if (fileContent.filePath.includes('constants/index.ts')) {
+              console.log(fileContent);
+            }
+          }
           allFileContents.push(...fileContents);
         }
+
+        // const latestVersion1 = new Date().toISOString();
+        // await versionDoc.updateOne({
+        //   currentVersion: latestVersion1,
+        //   lastUpdated: new Date(),
+        //   isUpdateInProgress: false
+        // });
+
+        // return;
 
         // Display files that will be updated
         console.table(allFileContents.map(file => ({

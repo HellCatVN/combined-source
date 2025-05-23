@@ -10,10 +10,47 @@ import { ICustomRelatedModels } from '../interfaces/users.interface';
 // Enums
 import { userGender, userStatus } from '../enum/user.enum';
 
+// Define supported authentication providers
+export enum AuthProvider {
+  GOOGLE = 'google',
+  DISCORD = 'discord'
+}
+
 export const SchemaCreator = <Type>(customUserSchema: any = {}, customRelatedModels: ICustomRelatedModels = {
   relatedModels: [],
 }
 ) => {
+  // Define schema for social identities
+  const SocialIdentitySchema = new Schema({
+    provider: {
+      type: String,
+      required: true,
+      enum: Object.values(AuthProvider)
+    },
+    providerUserId: {
+      type: String,
+      required: true
+    },
+    email: String,
+    profileData: {
+      type: Map,
+      of: Schema.Types.Mixed,
+      default: new Map()
+    },
+    tokens: {
+      accessToken: String,
+      refreshToken: String,
+      expiresAt: Date
+    },
+    lastLoginAt: {
+      type: Date,
+      default: Date.now
+    }
+  }, { _id: false });
+
+  // Create compound index for provider + providerUserId
+  SocialIdentitySchema.index({ provider: 1, providerUserId: 1 }, { unique: true });
+
   const originUser = {
     status: {
       type: String,
@@ -28,49 +65,64 @@ export const SchemaCreator = <Type>(customUserSchema: any = {}, customRelatedMod
     },
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     username: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
     email: {
       type: String,
-      require: true,
+      required: false,
       unique: true,
+      sparse: true
     },
     birthDate: {
       type: Date,
-      require: true,
+      required: false,
     },
     gender: {
       type: String,
       enum: userGender,
-      require: true,
+      required: false,
     },
     phone: {
       type: String,
-      require: true,
+      required: false,
       unique: true,
+      sparse: true
     },
+    // Track primary authentication method
+    primaryProvider: {
+      type: String,
+      enum: Object.values(AuthProvider),
+    },
+    // Local auth credentials
     password: {
       type: String,
       require: true,
     },
+    // Social identities array for multiple providers
+    socialIdentities: [SocialIdentitySchema],
     isDeleted: {
       type: Boolean,
-      require: true,
+      required: true,
       default: false,
     }
   };
+
   const finalUserSchema = {
     ...originUser,
     ...customUserSchema,
   };
+
   const customizedUserSchema = new Schema<Type>(finalUserSchema, {
     timestamps: true,
   });
+
+  // Create compound index for social identities
+  customizedUserSchema.index({ 'socialIdentities.provider': 1, 'socialIdentities.providerUserId': 1 });
 
   /* Start - Hook triggered when delete user */
   customizedUserSchema.pre(['findOneAndDelete', 'deleteOne'], async function (next) {
@@ -89,5 +141,4 @@ export const SchemaCreator = <Type>(customUserSchema: any = {}, customRelatedMod
   /* End - Hook triggered when delete user */
 
   return customizedUserSchema;
-
 };

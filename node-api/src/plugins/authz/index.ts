@@ -14,112 +14,112 @@ export function RouteCreator(path: string, router: Router) {
   router.get(
     `${path}permissions`,
     authMiddleware as any,
-    authzMiddleware('permissions', 'read') as any,
+    authzMiddleware([{ resource: 'permissions', action: 'read' }]),
     authzController.getPermissions
   );
 
   router.get(
     `${path}roles`,
     authMiddleware as any,
-    authzMiddleware('roles', 'read') as any,
+    authzMiddleware([{ resource: 'roles', action: 'read' }]),
     authzController.getRoles
   );
 
   router.get(
     `${path}roles/:id`,
     authMiddleware as any,
-    authzMiddleware('roles', 'read') as any,
+    authzMiddleware([{ resource: 'roles', action: 'read' }]),
     authzController.getRoleById
   );
 
   router.post(
     `${path}roles`,
     authMiddleware as any,
-    authzMiddleware('roles', 'create') as any,
+    authzMiddleware([{ resource: 'roles', action: 'create' }]),
     authzController.createRole
   );
 
   router.put(
     `${path}roles/:roleId`,
     authMiddleware as any,
-    authzMiddleware('roles', 'update') as any,
+    authzMiddleware([{ resource: 'roles', action: 'update' }]),
     authzController.updateRole
   );
 
   router.delete(
     `${path}roles/:roleId`,
     authMiddleware as any,
-    authzMiddleware('roles', 'delete') as any,
+    authzMiddleware([{ resource: 'roles', action: 'delete' }]),
     authzController.deleteRole
   );
 
   router.get(
     `${path}resources`,
     authMiddleware as any,
-    authzMiddleware('resources', 'read') as any,
+    authzMiddleware([{ resource: 'resources', action: 'read' }]),
     authzController.getResources
   );
 
   router.get(
     `${path}resources/:id`,
     authMiddleware as any,
-    authzMiddleware('resources', 'read') as any,
+    authzMiddleware([{ resource: 'resources', action: 'read' }]),
     authzController.getResourceById
   );
 
   router.post(
     `${path}resources`,
     authMiddleware as any,
-    authzMiddleware('resources', 'create') as any,
+    authzMiddleware([{ resource: 'resources', action: 'create' }]),
     authzController.createResource
   );
 
   router.put(
     `${path}resources/:id`,
     authMiddleware as any,
-    authzMiddleware('resources', 'update') as any,
+    authzMiddleware([{ resource: 'resources', action: 'update' }]),
     authzController.updateResource
   );
 
   router.delete(
     `${path}resources/:id`,
     authMiddleware as any,
-    authzMiddleware('resources', 'delete') as any,
+    authzMiddleware([{ resource: 'resources', action: 'delete' }]),
     authzController.deleteResource
   );
 
   router.get(
     `${path}endpoints`,
     authMiddleware as any,
-    authzMiddleware('endpoints', 'read') as any,
+    authzMiddleware([{ resource: 'endpoints', action: 'read' }]),
     authzController.getEndpointConfigs
   );
 
   router.get(
     `${path}endpoints/:id`,
     authMiddleware as any,
-    authzMiddleware('endpoints', 'read') as any,
+    authzMiddleware([{ resource: 'endpoints', action: 'read' }]),
     authzController.getEndpointConfigById
   );
 
   router.post(
     `${path}endpoints`,
     authMiddleware as any,
-    authzMiddleware('endpoints', 'create') as any,
+    authzMiddleware([{ resource: 'endpoints', action: 'create' }]),
     authzController.createEndpointConfig
   );
 
   router.put(
     `${path}endpoints/:id`,
     authMiddleware as any,
-    authzMiddleware('endpoints', 'update') as any,
+    authzMiddleware([{ resource: 'endpoints', action: 'update' }]),
     authzController.updateEndpointConfig
   );
 
   router.delete(
     `${path}endpoints/:id`,
     authMiddleware as any,
-    authzMiddleware('endpoints', 'delete') as any,
+    authzMiddleware([{ resource: 'endpoints', action: 'delete' }]),
     authzController.deleteEndpointConfig
   );
 }

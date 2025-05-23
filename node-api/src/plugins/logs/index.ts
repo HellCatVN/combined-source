@@ -9,7 +9,7 @@ export function RouteCreator(path: string, router: Router) {
   router.get(
     `${path}`,
     authMiddleware as any,
-    authzMiddleware('logs', 'read') as any,
+    authzMiddleware([{ resource: 'logs', action: 'read' }]) as any,
     logsController.getLogs
   );
 }

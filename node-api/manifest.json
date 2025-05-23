@@ -211,6 +211,10 @@
     {
       "filePath": "src/validations/rules/rules.ts",
       "version": "0.0.1"
+    },
+    {
+      "filePath": "scripts/check-untracked.js",
+      "version": "0.0.1"
     }
   ]
 }

@@ -14,7 +14,6 @@ import {
 } from "@plugins/auth/interface/auth.interface";
 
 const authzService = new AuthzService();
-const EndpointConfigModel = authzContainer.get<Model<IEndpointConfig>>("AuthzEndpointConfigCollection");
 
 interface PermissionConfig {
   resource: string;
@@ -28,76 +27,48 @@ const assertUserForPermissionCheck = (
   return user as unknown as CheckPermissionParams["user"];
 };
 
-const getEndpointConfig = async (path: string, method: string): Promise<IEndpointConfig | null> => {
-  return await EndpointConfigModel.findOne({
-    path,
-    method: method.toLowerCase(),
-  });
+const checkMultiplePermissions = async (
+  user: IUserInfoResponse,
+  permissions: PermissionConfig[],
+  type: 'any' | 'all' = 'all'
+): Promise<boolean> => {
+  const checkResults = await Promise.all(
+    permissions.map(({ resource, action }) =>
+      authzService.checkPermission({
+        user: assertUserForPermissionCheck(user),
+        resource,
+        action,
+      })
+    )
+  );
+
+  return type === 'any'
+    ? checkResults.some(result => result === true)
+    : checkResults.every(result => result === true);
 };
 
 const checkSinglePermission = async (
   user: IUserInfoResponse,
-  config: IEndpointConfig | null,
-  resource?: string,
-  action?: string
+  permission: PermissionConfig
 ): Promise<boolean> => {
   return await authzService.checkPermission({
     user: assertUserForPermissionCheck(user),
-    resource: config?.resource || resource,
-    action: config?.action || action,
+    resource: permission.resource,
+    action: permission.action,
   });
 };
 
-// Middleware functions
-export const authzMiddleware = (resource?: string, action?: string) => {
+// Unified authorization middleware
+export const authzMiddleware = (permissions: PermissionConfig[] = [], authType: 'any' | 'all' = 'all') => {
   return async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      const config = await getEndpointConfig(req.path, req.method);
-      const hasPermission = await checkSinglePermission(req.user, config, resource, action);
+      if (permissions.length === 0) {
+        return next();
+      }
+
+      const hasPermission = await checkMultiplePermissions(req.user, permissions, authType);
+
       if (!hasPermission) {
-        return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
-      }
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-export const authzAnyMiddleware = (permissions: PermissionConfig[]) => {
-  return async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    try {
-      const config = await getEndpointConfig(req.path, req.method);
-      
-      const checkResults = await Promise.all(
-        permissions.map(permission =>
-          checkSinglePermission(req.user, config, permission.resource, permission.action)
-        )
-      );
-
-      if (!checkResults.some(result => result === true)) {
-        return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
-      }
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-export const authzMultiMiddleware = (permissions: PermissionConfig[]) => {
-  return async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    try {
-      const config = await getEndpointConfig(req.path, req.method);
-      
-      const checkResults = await Promise.all(
-        permissions.map(permission =>
-          checkSinglePermission(req.user, config, permission.resource, permission.action)
-        )
-      );
-
-      if (!checkResults.every(result => result === true)) {
         return next(new HttpException(httpStatusCode.ClientError.Forbidden, "Access denied"));
       }
 

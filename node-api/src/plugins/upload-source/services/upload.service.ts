@@ -81,6 +81,12 @@ class UploadService {
       const isNewFile = newFiles.includes(filePath);
       const remoteContent = remoteContents.get(relativePath);
 
+      // if(filePath.includes('constants/index.ts')) {
+      //   console.log(remoteContent === content);
+      //   console.log(remoteContent);
+      //   console.log(filePath);
+      // }
+
       if (!isNewFile && remoteContent === content) {
         completedUploads.push({ status: "⏭️", file: relativePath, size: stats.size });
         return;

@@ -253,9 +253,40 @@ class AuthzService {
   }
 
   // Endpoint Config Management Methods
+  private validateEndpointPermissions(permissions: Array<{ resource: string; action: string }>) {
+    if (!Array.isArray(permissions)) {
+      throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Permissions must be an array');
+    }
+
+    return Promise.all(permissions.map(async (permission) => {
+      const resource = await this.resourceModel.findOne({ name: permission.resource });
+      if (!resource) {
+        throw new HttpException(
+          httpStatusCode.ClientError.BadRequest,
+          `Invalid resource: ${permission.resource}`
+        );
+      }
+
+      if (!resource.allowedActions.includes(permission.action)) {
+        throw new HttpException(
+          httpStatusCode.ClientError.BadRequest,
+          `Invalid action '${permission.action}' for resource '${permission.resource}'`
+        );
+      }
+    }));
+  }
+
   public async createEndpointConfig(configData: CreateEndpointConfigDto) {
     if (!configData.path || !configData.method) {
       throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Path and method are required');
+    }
+
+    if (!['any', 'all'].includes(configData.authType)) {
+      throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Invalid authType value');
+    }
+
+    if (configData.permissions && configData.permissions.length > 0) {
+      await this.validateEndpointPermissions(configData.permissions);
     }
 
     const existingConfig = await this.endpointConfigModel.findOne({
@@ -287,6 +318,14 @@ class AuthzService {
     const config = await this.endpointConfigModel.findById(id);
     if (!config) {
       throw new HttpException(httpStatusCode.ClientError.NotFound, 'Endpoint config not found');
+    }
+
+    if (configData.authType && !['any', 'all'].includes(configData.authType)) {
+      throw new HttpException(httpStatusCode.ClientError.BadRequest, 'Invalid authType value');
+    }
+
+    if (configData.permissions && configData.permissions.length > 0) {
+      await this.validateEndpointPermissions(configData.permissions);
     }
 
     Object.assign(config, configData);
