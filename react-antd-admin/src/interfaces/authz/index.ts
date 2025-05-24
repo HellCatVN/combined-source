@@ -54,8 +54,11 @@ export interface EndpointPermission {
   _id: string;
   path: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  resource: string;
-  action: string;
+  authType: 'any' | 'all';
+  permissions: Array<{
+    resource: string;
+    action: string;
+  }>;
   description?: string;
   isActive: boolean;
   createdAt: string;
@@ -65,8 +68,11 @@ export interface EndpointPermission {
 export interface CreateEndpointPermissionPayload {
   path: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  resource: string;
-  action: string;
+  authType: 'any' | 'all';
+  permissions: Array<{
+    resource: string;
+    action: string;
+  }>;
   description?: string;
   isActive: boolean;
 }

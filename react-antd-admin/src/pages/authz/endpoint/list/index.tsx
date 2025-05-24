@@ -1,192 +1,163 @@
-import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { App, Button, Card, Col, Input, Row, Space, Table, TableColumnsType, Tag } from 'antd';
-import queryString from 'query-string';
-import { Link, useSearchParams } from 'react-router-dom';
-
-import backendSearchFilterBuilder from '@components/table/backendSearchFilterBuilder';
+import { useNavigate } from 'react-router-dom';
+import { Button, Card, Space, Table, Tag, Tooltip, App } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
+import { CreateEndpointPermissionPayload, EndpointPermission } from '@interfaces/authz';
 import { useGetEndpointPermissions, useDeleteEndpointPermission } from '@hooks/react-query/useAuthz';
-import { EndpointPermission } from '@interfaces/authz';
-import { getError } from '@utils';
-import { useRef } from 'react';
-import type { InputRef } from 'antd';
+import { IPaginationSuccessResponse } from '@interfaces/response';
 
-const methodColors: Record<string, string> = {
-  GET: 'blue',
-  POST: 'green',
-  PUT: 'orange',
-  DELETE: 'red',
-  PATCH: 'purple'
-};
+interface TableEndpointPermission extends EndpointPermission {
+  permissions: Array<{
+    resource: string;
+    action: string;
+  }>;
+}
 
-const EndpointPermissionList = () => {
-  const { modal, notification } = App.useApp();
-  const { mutate: executeDeleteEndpoint } = useDeleteEndpointPermission();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const path = searchParams.get('path') || undefined;
-  const size = Number(searchParams.get('size')) || 10;
-  const index = Number(searchParams.get('index')) || 1;
-
-  const searchDropdownInput = useRef<InputRef>(null!);
-
-  const { data: response, isLoading, refetch } = useGetEndpointPermissions({
-    path,
-    size,
-    index,
-  });
-
-  const data = response?.data;
-
-  const handleDeleteEndpoint = (id: string) => {
-    executeDeleteEndpoint(id, {
-      onSuccess: (response: any) => {
-        notification.success({
-          message: 'Successfully',
-          description: response.data.message,
-          placement: 'topRight',
-        });
-        refetch();
-      },
-      onError: error => {
-        notification.error({
-          message: 'Error!',
-          description: getError(error),
-          placement: 'topRight',
-        });
-      },
+const EndpointList = () => {
+  const navigate = useNavigate();
+  const { modal } = App.useApp();
+  
+  const { data: response, isLoading } = useGetEndpointPermissions({});
+  
+  // Safely access nested response data with proper type checking
+  const endpointData = response?.data?.data ?? [];
+  const paginationData = response?.data?.pagination;
+  const deleteEndpoint = useDeleteEndpointPermission();
+  
+  const handleDelete = (id: string) => {
+    modal.confirm({
+      title: 'Delete Endpoint',
+      content: 'Are you sure you want to delete this endpoint configuration?',
+      onOk: () => deleteEndpoint.mutate(id),
     });
   };
 
-  const handleOnChangePage = (page: number, pageSize: number) => {
-    const params = queryString.stringify({
-      path,
-      index: page,
-      size: pageSize,
-    });
-    setSearchParams(params);
-  };
-
-  const handleOnChangeFilter = (fieldName: string, value: string) => {
-    const params = queryString.stringify({
-      path,
-      size,
-      index: 1,
-      [fieldName]: value,
-    });
-    setSearchParams(params);
-  };
-
-  const columns: TableColumnsType<EndpointPermission> = [
+  const columns: ColumnsType<TableEndpointPermission> = [
     {
       title: 'Path',
-      key: 'path',
       dataIndex: 'path',
-      sorter: {
-        compare: (a, b) => a.path.localeCompare(b.path),
-      },
-      ...backendSearchFilterBuilder('path', searchDropdownInput, handleOnChangeFilter),
+      key: 'path',
+      ellipsis: true,
+      render: (path: string) => <Tag>{path}</Tag>,
     },
     {
       title: 'Method',
-      key: 'method',
       dataIndex: 'method',
-      render: method => (
-        <Tag color={methodColors[method]}>
+      key: 'method',
+      width: 90,
+      responsive: ['xs'],
+      render: (method: string) => (
+        <Tag color={
+          method === 'GET' ? 'green' :
+          method === 'POST' ? 'blue' :
+          method === 'PUT' ? 'orange' :
+          method === 'DELETE' ? 'red' :
+          method === 'PATCH' ? 'purple' : 'default'
+        }>
           {method}
         </Tag>
       ),
     },
     {
-      title: 'Resource',
-      key: 'resource',
-      dataIndex: 'resource',
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      dataIndex: 'action',
-    },
-    {
-      title: 'Status',
-      key: 'isActive',
-      dataIndex: 'isActive',
-      render: value => (
-        <Tag color={value ? 'success' : 'error'}>
-          {value ? 'Active' : 'Inactive'}
+      title: 'Auth Type',
+      dataIndex: 'authType',
+      key: 'authType',
+      width: 90,
+      responsive: ['sm'],
+      render: (authType: string) => (
+        <Tag color={authType === 'all' ? 'blue' : 'orange'}>
+          {authType}
         </Tag>
       ),
     },
     {
-      title: 'Action',
+      title: 'Permissions',
+      key: 'permissions',
+      responsive: ['md'],
+      ellipsis: true,
+      render: (_, record: TableEndpointPermission) => (
+        <Space size={[0, 4]} wrap>
+          {record.permissions.map((p, i) => (
+            <Tooltip key={i} title={`Resource: ${p.resource}, Action: ${p.action}`}>
+              <Tag color="processing">{p.resource}:{p.action}</Tag>
+            </Tooltip>
+          ))}
+        </Space>
+      ),
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      responsive: ['lg'],
+      ellipsis: true,
+      render: (description: string) => description || '-',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      width: 100,
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'success' : 'error'}>
+          {isActive ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Actions',
       key: 'actions',
-      align: 'center',
-      fixed: 'right',
-      width: 140,
+      width: 120,
       render: (_, record) => (
-        <Space size="middle">
+        <Space>
           <Button
-            icon={<DeleteOutlined />}
-            type="text"
-            onClick={() =>
-              modal.confirm({
-                centered: true,
-                title: 'Confirm',
-                content: `Are you sure to delete endpoint ${record.path} (${record.method})?`,
-                onOk: () => handleDeleteEndpoint(record._id),
-              })
-            }
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/authz/endpoint/edit/${record._id}`)}
           />
-          <Link to={`/authz/endpoint/edit/${record._id}`}>
-            <Button icon={<EditOutlined />} type="text" />
-          </Link>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record._id)}
+          />
         </Space>
       ),
     },
   ];
 
   return (
-    <Card title="Endpoint Permission List">
-      <Space direction="vertical" size="middle" className="w-100">
-        <Row justify="space-between" gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <Link to="/authz/endpoint/create">
-              <Button type="primary" icon={<PlusOutlined />}>
-                Create Endpoint
-              </Button>
-            </Link>
-          </Col>
-          <Col xs={24} md={16}>
-            <Input.Search
-              className="w-100"
-              defaultValue={path}
-              placeholder="Search endpoint by path"
-              onSearch={value => handleOnChangeFilter('path', value)}
-            />
-          </Col>
-        </Row>
-
-        <Table<EndpointPermission>
-          columns={columns}
-          loading={{
-            spinning: isLoading,
-            indicator: <LoadingOutlined spin />,
-          }}
-          dataSource={data?.data || []}
-          pagination={{
-            pageSize: size,
-            current: index,
-            onChange: handleOnChangePage,
-            total: data?.pagination?.total || 0,
-          }}
-          rowKey={({ _id }) => _id}
-          scroll={{ x: 'max-content' }}
-          sticky={{
-            offsetHeader: 0,
-          }}
-          size="small"
-        />
-      </Space>
+    <Card
+      title="Endpoint Permissions"
+      extra={
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => navigate('/authz/endpoint/create')}
+        >
+          {window.innerWidth > 576 ? 'Add Endpoint' : ''}
+        </Button>
+      }
+    >
+      <Table<TableEndpointPermission>
+        columns={columns}
+        dataSource={endpointData as TableEndpointPermission[]}
+        loading={isLoading}
+        rowKey="_id"
+        scroll={{ x: 800 }}
+        pagination={
+          paginationData
+            ? {
+                current: paginationData.current_page,
+                pageSize: paginationData.limit,
+                total: paginationData.total,
+                showTotal: (total) => `Total ${total} items`,
+              }
+            : false
+        }
+      />
     </Card>
   );
 };
 
-export default EndpointPermissionList;
+export default EndpointList;

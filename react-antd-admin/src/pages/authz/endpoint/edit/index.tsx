@@ -1,162 +1,205 @@
-import { App, Button, Card, Col, Form, Input, Row, Space, Switch, Select } from 'antd';
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-
-import {
-  useGetEndpointPermission,
-  useUpdateEndpointPermission,
-  useGetResources
-} from '@hooks/react-query/useAuthz';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { App, Button, Card, Col, Form, Input, Row, Space, Switch, Select, Spin } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { UpdateEndpointPermissionPayload } from '@interfaces/authz';
+import { useGetEndpointPermission, useUpdateEndpointPermission, useGetResources } from '@hooks/react-query/useAuthz';
 import useForm from '@hooks/useForm';
-import { UpdateEndpointPermissionPayload, Resource } from '@interfaces/authz';
-import { getError } from '@utils';
-import { validatorUpdateEndpointPermission, validatorResponseUpdateEndpointPermission } from '@validations/schemas/authz';
+import { z } from 'zod';
 
-const DEFAULT_VALUES: Partial<UpdateEndpointPermissionPayload> = {
-  path: '',
-  method: 'GET',
-  resource: '',
-  action: '',
-  description: '',
-  isActive: true
-};
+const { Option } = Select;
 
-const formItemLayout = {
-  labelCol: {
-    xs: { span: 24 },
-    sm: { span: 8 },
-  },
-  wrapperCol: {
-    xs: { span: 24 },
-    sm: { span: 16 },
-  },
-};
+const schema = z.object({
+  path: z.string().min(1, 'Path is required'),
+  method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
+  authType: z.enum(['any', 'all']),
+  permissions: z.array(z.object({
+    resource: z.string().min(1, 'Resource is required'),
+    action: z.string().min(1, 'Action is required')
+  })).min(1, 'At least one permission is required'),
+  description: z.string().optional(),
+  isActive: z.boolean(),
+  _id: z.string()
+}) satisfies z.ZodType<UpdateEndpointPermissionPayload>;
 
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+type FormData = z.infer<typeof schema>;
 
-const EditEndpointPermission = () => {
-  const { id } = useParams();
+const EndpointEdit = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { data: response } = useGetEndpointPermission(id);
-  const { data: resourcesResponse } = useGetResources({});
-  const { notification, modal } = App.useApp();
-  const { mutate: executeUpdateEndpoint } = useUpdateEndpointPermission();
+  const { modal } = App.useApp();
 
-  const { formField, inputField } = useForm<Partial<UpdateEndpointPermissionPayload>>({
-    form: form,
-    schema: validatorUpdateEndpointPermission,
+  const { data: response, isLoading: isLoadingEndpoint } = useGetEndpointPermission(id);
+  const updateEndpoint = useUpdateEndpointPermission();
+  const { data: resourcesResponse } = useGetResources({});
+  const [selectedResources, setSelectedResources] = useState<Record<number, string>>({});
+
+  const endpointData = response?.data ? {
+    _id: response.data.data._id,
+    path: response.data.data.path,
+    method: response.data.data.method,
+    authType: response.data.data.authType,
+    permissions: response.data.data.permissions?.length ? response.data.data.permissions : [{
+      resource: '',
+      action: ''
+    }],
+    description: response.data.data.description || '',
+    isActive: response.data.data.isActive
+  } : undefined;
+
+  const { formField, inputField } = useForm<FormData>({
+    form,
+    schema,
     onSubmit: (formData, error) => {
-      if (error) return;
+      if (error || !formData) return;
       modal.confirm({
-        centered: true,
-        title: 'Edit endpoint permission',
-        content: `Are you sure to edit endpoint ${response?.data.data.path}?`,
-        onOk: () => handleOnSubmit(formData as UpdateEndpointPermissionPayload),
+        title: 'Update Endpoint',
+        content: 'Are you sure you want to update this endpoint configuration?',
+        onOk: () => {
+          updateEndpoint.mutate(
+            { id: formData._id, payload: formData },
+            {
+              onSuccess: () => navigate('/authz/endpoint/list'),
+            }
+          );
+        },
       });
     },
   });
 
-  const handleOnSubmit = (formData: UpdateEndpointPermissionPayload) => {
-    if (!id)
-      return notification.error({
-        message: 'Error!',
-        description: 'Endpoint Permission ID invalid!',
-      });
-    executeUpdateEndpoint(
-      {
-        id,
-        payload: formData,
-      },
-      {
-        onSuccess: async response => {
-          try {
-            await validatorResponseUpdateEndpointPermission.parseAsync(response.data);
-            notification.success({
-              message: 'Success',
-              description: response.data.message,
-            });
-          } catch (error) {
-            notification.error({
-              message: 'Error',
-              description: getError(error),
-            });
-          }
-        },
-        onError: error => {
-          notification.error({
-            message: 'Error',
-            description: getError(error),
-          });
-        },
-      }
+  if (isLoadingEndpoint) {
+    return (
+      <Row justify="center" align="middle" style={{ minHeight: 200 }}>
+        <Spin size="large" />
+      </Row>
     );
-  };
-
-  function handleOnReset() {
-    if (response?.data.data) {
-      formField.form.setFieldsValue(response.data.data);
-    }
   }
 
-  useEffect(() => {
-    if (response?.data.data) {
-      formField.form.setFieldsValue(response.data.data);
-    }
-  }, [response?.data.data, formField.form]);
-
-  const resources = resourcesResponse?.data.data || [];
-  const selectedResource = resources.find(r => r.name === form.getFieldValue('resource'));
+  if (!endpointData) {
+    return (
+      <Card>
+        <Row justify="center">
+          <Col>Endpoint not found</Col>
+        </Row>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
+    <Card title="Edit Endpoint Permission">
       <Row>
         <Col xs={24} md={18}>
           <Form
             {...formField}
-            {...formItemLayout}
-            layout="horizontal"
-            initialValues={DEFAULT_VALUES}
+            layout="vertical"
+            initialValues={endpointData}
+            onValuesChange={(_, values) => {
+              // Ensure permissions array is never empty
+              if (!values.permissions || values.permissions.length === 0) {
+                form.setFieldsValue({
+                  permissions: [{
+                    resource: '',
+                    action: ''
+                  }]
+                });
+              }
+            }}
           >
-            <Form.Item {...inputField} label="Path" name="path">
-              <Input size="large" placeholder="Enter endpoint path (e.g. /api/users)" />
+            <Form.Item name="_id" hidden>
+              <Input />
             </Form.Item>
 
-            <Form.Item {...inputField} label="HTTP Method" name="method">
-              <Select
-                size="large"
-                placeholder="Select HTTP method"
-                options={HTTP_METHODS.map(method => ({
-                  label: method,
-                  value: method,
-                }))}
-              />
+            <Form.Item {...inputField} label="Path" name="path" required>
+              <Input placeholder="Enter endpoint path (e.g., /api/users)" />
             </Form.Item>
 
-            <Form.Item {...inputField} label="Resource" name="resource">
-              <Select
-                size="large"
-                placeholder="Select resource"
-                options={resources.map(resource => ({
-                  label: resource.name,
-                  value: resource.name,
-                }))}
-              />
+            <Form.Item {...inputField} label="Method" name="method" required>
+              <Select>
+                <Option value="GET">GET</Option>
+                <Option value="POST">POST</Option>
+                <Option value="PUT">PUT</Option>
+                <Option value="DELETE">DELETE</Option>
+                <Option value="PATCH">PATCH</Option>
+              </Select>
             </Form.Item>
 
-            <Form.Item {...inputField} label="Action" name="action">
-              <Select
-                size="large"
-                placeholder="Select action"
-                disabled={!selectedResource}
-                options={selectedResource?.allowedActions.map(action => ({
-                  label: action,
-                  value: action,
-                })) || []}
-              />
+            <Form.Item {...inputField} label="Auth Type" name="authType" required>
+              <Select>
+                <Option value="all">All (Must have all permissions)</Option>
+                <Option value="any">Any (Must have any permission)</Option>
+              </Select>
             </Form.Item>
+
+            <Form.List name="permissions">
+              {(fields, { add, remove }) => (
+                <Form.Item label="Permissions" required>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Card key={key} style={{ marginBottom: 16 }} size="small">
+                      <Row gutter={16}>
+                        <Col span={11}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'resource']}
+                            validateTrigger={['onChange', 'onBlur']}
+                            rules={[{ required: true, message: 'Resource is required' }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Select
+                              placeholder="Select resource"
+                              onChange={(value) => {
+                                setSelectedResources(prev => ({
+                                  ...prev,
+                                  [name]: value
+                                }));
+                              }}
+                              options={resourcesResponse?.data.data.map((resource) => ({
+                                label: resource.name,
+                                value: resource.name
+                              }))}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={11}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'action']}
+                            validateTrigger={['onChange', 'onBlur']}
+                            rules={[{ required: true, message: 'Action is required' }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Select
+                              placeholder="Select action"
+                              options={resourcesResponse?.data.data
+                                .find(r => r.name === selectedResources[name])
+                                ?.allowedActions.map(action => ({
+                                  label: action,
+                                  value: action
+                                })) || []
+                              }
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={2} style={{ textAlign: 'right' }}>
+                          {fields.length > 1 && (
+                            <MinusCircleOutlined 
+                              onClick={() => remove(name)}
+                              style={{ color: '#ff4d4f', cursor: 'pointer' }}
+                            />
+                          )}
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    Add Permission
+                  </Button>
+                </Form.Item>
+              )}
+            </Form.List>
 
             <Form.Item {...inputField} label="Description" name="description">
-              <Input.TextArea rows={4} placeholder="Enter endpoint description" />
+              <Input.TextArea rows={4} placeholder="Enter description" />
             </Form.Item>
 
             <Form.Item {...inputField} label="Status" name="isActive" valuePropName="checked">
@@ -166,11 +209,11 @@ const EditEndpointPermission = () => {
             <Row justify="end">
               <Col>
                 <Space>
-                  <Button danger type="primary" disabled={!response?.data.data} onClick={handleOnReset}>
-                    Reset
+                  <Button onClick={() => navigate('/authz/endpoint/list')}>
+                    Cancel
                   </Button>
                   <Button type="primary" htmlType="submit">
-                    Save changes
+                    Update
                   </Button>
                 </Space>
               </Col>
@@ -182,4 +225,4 @@ const EditEndpointPermission = () => {
   );
 };
 
-export default EditEndpointPermission;
+export default EndpointEdit;
